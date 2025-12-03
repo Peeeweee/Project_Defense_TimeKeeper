@@ -19,7 +19,7 @@ export interface PhaseConfig {
 
 export interface AppConfig {
   phases: Record<Exclude<Phase, Phase.COMPLETE>, PhaseConfig>;
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'ml2025';
   soundEnabled: boolean;
   tickMode: TickMode;
   autoAdvance: boolean;

@@ -16,7 +16,12 @@
               mono: ['"Fira Code"', 'monospace'],
             },
             colors: {
-              // Custom monochrome palette extension if needed
+              ml: {
+                bg: '#450a0f',      // Deep Maroon
+                yellow: '#fbbf24',  // Amber-400
+                orange: '#f97316',  // Orange-500
+                white: '#ffffff',
+              }
             }
           }
         }
@@ -28,8 +33,44 @@
       }
       /* Smooth transitions for theme switching */
       .theme-transition {
-        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
       }
+
+      /* Custom Geometric Pattern for ML2025 Theme */
+      .bg-pattern-ml2025 {
+        background-color: #450a0f;
+        background-image: 
+          radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.05) 20%, transparent 20%),
+          radial-gradient(circle at 0% 0%, rgba(251, 191, 36, 0.05) 20%, transparent 20%),
+          radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.03) 20%, transparent 20%);
+        background-size: 6rem 6rem;
+      }
+
+      /* Animation Utilities */
+      @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes shimmer {
+        0% { opacity: 0.5; }
+        50% { opacity: 1; }
+        100% { opacity: 0.5; }
+      }
+      
+      .animate-slide-up {
+        animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .animate-scale-in {
+        animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      
+      .delay-100 { animation-delay: 100ms; }
+      .delay-200 { animation-delay: 200ms; }
+      .delay-300 { animation-delay: 300ms; }
     </style>
   <script type="importmap">
 {

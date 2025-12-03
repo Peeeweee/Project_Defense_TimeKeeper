@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, SkipForward, RotateCw } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, RotateCw, Settings2 } from 'lucide-react';
 import { Phase } from '../types';
 
 interface ControlsProps {
@@ -9,9 +9,10 @@ interface ControlsProps {
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  onRestartSession: () => void;
   onRestartPhase: () => void;
   onSkip: () => void;
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'ml2025';
 }
 
 export const Controls: React.FC<ControlsProps> = ({
@@ -21,6 +22,7 @@ export const Controls: React.FC<ControlsProps> = ({
   onStart,
   onPause,
   onReset,
+  onRestartSession,
   onRestartPhase,
   onSkip,
   theme
@@ -34,30 +36,46 @@ export const Controls: React.FC<ControlsProps> = ({
   `;
 
   // Theme specific styles
-  const primaryBtn = theme === 'dark' 
-    ? 'border-white bg-white text-black hover:bg-gray-200' 
-    : 'border-black bg-black text-white hover:bg-gray-800';
-    
-  const secondaryBtn = theme === 'dark'
-    ? 'border-white/20 text-white hover:border-white/100 hover:bg-white/10'
-    : 'border-black/20 text-black hover:border-black/100 hover:bg-black/10';
+  let primaryBtn = '';
+  let secondaryBtn = '';
+
+  if (theme === 'dark') {
+    primaryBtn = 'border-white bg-white text-black hover:bg-gray-200';
+    secondaryBtn = 'border-white/20 text-white hover:border-white/100 hover:bg-white/10';
+  } else if (theme === 'light') {
+    primaryBtn = 'border-black bg-black text-white hover:bg-gray-800';
+    secondaryBtn = 'border-black/20 text-black hover:border-black/100 hover:bg-black/10';
+  } else if (theme === 'ml2025') {
+    primaryBtn = 'border-ml-yellow bg-ml-yellow text-ml-bg hover:bg-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.3)]';
+    secondaryBtn = 'border-ml-yellow/30 text-ml-yellow hover:border-ml-yellow hover:bg-ml-yellow/10';
+  }
 
   if (isComplete) {
     return (
-      <div className="flex gap-4 mt-8">
+      <div className="flex flex-col md:flex-row items-center gap-4 mt-8 animate-slide-up">
+        {/* Restart Same Config */}
         <button 
-          onClick={onReset} 
-          className={`${buttonBase} ${primaryBtn} gap-2 w-auto px-8`}
+          onClick={onRestartSession} 
+          className={`${buttonBase} ${primaryBtn} gap-3 w-full md:w-auto px-8 py-4`}
         >
           <RotateCcw size={iconSize} />
-          <span className="font-bold">NEW SESSION</span>
+          <span className="font-bold tracking-wider">RESTART SESSION</span>
+        </button>
+
+        {/* Configure New */}
+        <button 
+          onClick={onReset} 
+          className={`${buttonBase} ${secondaryBtn} gap-3 w-full md:w-auto px-8 py-4`}
+        >
+          <Settings2 size={iconSize} />
+          <span className="font-bold tracking-wider">CONFIGURE NEW</span>
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-4 md:gap-8 mt-8">
+    <div className="flex items-center gap-4 md:gap-8 mt-8 animate-slide-up delay-100">
       {/* Restart Phase */}
       <button 
         onClick={onRestartPhase} 
@@ -93,10 +111,8 @@ export const Controls: React.FC<ControlsProps> = ({
         <SkipForward size={iconSize} />
       </button>
       
-      {/* Reset Session (hidden on mobile unless paused or really needed, put in settings/menu usually, but here requested accessible) */}
+      {/* Reset Session */}
       <div className="absolute top-4 left-4 md:static">
-         {/* We keep reset distinct or in corners to avoid accidents, handled in layout header usually, 
-             but we can add a small reset button here if paused */}
          {isPaused && (
            <button 
              onClick={onReset}

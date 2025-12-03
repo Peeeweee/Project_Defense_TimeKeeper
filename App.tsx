@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Maximize2, Minimize2, Home, AlertTriangle, Sun, Moon } from 'lucide-react';
+import { Settings as SettingsIcon, Maximize2, Minimize2, Home, AlertTriangle, Sun, Moon, Palette } from 'lucide-react';
 import { useDefenseTimer } from './hooks/useDefenseTimer';
 import { TimerDisplay } from './components/TimerDisplay';
 import { Controls } from './components/Controls';
@@ -46,25 +46,27 @@ function App() {
   };
 
   const toggleTheme = () => {
-    setConfig(prev => ({ ...prev, theme: prev.theme === 'dark' ? 'light' : 'dark' }));
+    setConfig(prev => {
+      let nextTheme: 'dark' | 'light' | 'ml2025' = 'dark';
+      if (prev.theme === 'dark') nextTheme = 'light';
+      else if (prev.theme === 'light') nextTheme = 'ml2025';
+      else nextTheme = 'dark';
+      
+      return { ...prev, theme: nextTheme };
+    });
   };
 
   const handleStartSession = () => {
-    // Reset timer to ensure it picks up the latest config values for the start phase
     timer.resetSession();
     setView('timer');
   };
 
   const handleReturnToSetupRequest = () => {
-    // If the session is already complete, we can just go back without confirmation
-    // as there is no active progress to lose.
     if (timer.currentPhase === Phase.COMPLETE) {
       timer.resetSession();
       setView('setup');
       return;
     }
-
-    // Otherwise, show the non-blocking modal so the timer continues in background
     setIsExitConfirmOpen(true);
   };
 
@@ -74,18 +76,34 @@ function App() {
     setIsExitConfirmOpen(false);
   };
 
-  const themeClasses = config.theme === 'dark' 
-    ? 'bg-black text-white' 
-    : 'bg-white text-black';
+  // Determine main App container classes based on theme
+  let themeClasses = '';
+  let iconColor = '';
+  let modalBg = '';
 
-  const iconColor = config.theme === 'dark' ? 'text-white' : 'text-black';
-  const modalBg = config.theme === 'dark' ? 'bg-zinc-900 text-white border-zinc-700' : 'bg-white text-black border-gray-200';
+  if (config.theme === 'dark') {
+    themeClasses = 'bg-black text-white';
+    iconColor = 'text-white';
+    modalBg = 'bg-zinc-900 text-white border-zinc-700';
+  } else if (config.theme === 'light') {
+    themeClasses = 'bg-white text-black';
+    iconColor = 'text-black';
+    modalBg = 'bg-white text-black border-gray-200';
+  } else if (config.theme === 'ml2025') {
+    // Custom geometric pattern background
+    themeClasses = 'bg-pattern-ml2025 text-ml-yellow';
+    iconColor = 'text-ml-yellow';
+    modalBg = 'bg-ml-bg text-ml-yellow border-ml-yellow/30';
+  }
+
+  // Theme Icon Logic
+  const ThemeIcon = config.theme === 'dark' ? Sun : config.theme === 'light' ? Palette : Moon;
 
   return (
     <div className={`min-h-screen w-full flex flex-col theme-transition ${themeClasses} font-mono overflow-hidden`}>
       
       {/* Header */}
-      <header className="flex justify-between items-center p-6 md:p-8 z-10">
+      <header className="flex justify-between items-center p-6 md:p-8 z-10 animate-slide-up">
         <div className="flex items-center gap-4">
           <div 
             className="text-sm md:text-base font-bold tracking-widest uppercase opacity-70 cursor-pointer hover:opacity-100 transition-opacity" 
@@ -101,9 +119,9 @@ function App() {
            <button 
              onClick={toggleTheme}
              className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
-             title={`Switch to ${config.theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+             title="Switch Theme"
            >
-             {config.theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
+             <ThemeIcon size={24} />
            </button>
 
            {/* Home / New Session Button */}
@@ -126,7 +144,7 @@ function App() {
              {isFullscreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
            </button>
 
-           {/* Settings Button (Only visible in Timer view to adjust mid-session) */}
+           {/* Settings Button */}
            {view === 'timer' && (
              <button 
               onClick={() => setIsSettingsOpen(true)}
@@ -176,6 +194,7 @@ function App() {
               onStart={timer.start}
               onPause={timer.pause}
               onReset={handleReturnToSetupRequest}
+              onRestartSession={() => timer.resetSession()}
               onRestartPhase={timer.restartPhase}
               onSkip={timer.skipPhase}
               theme={config.theme}
@@ -186,7 +205,7 @@ function App() {
       </main>
 
       {/* Footer / Status */}
-      <footer className="p-6 text-center text-xs opacity-30 uppercase tracking-widest">
+      <footer className="p-6 text-center text-xs opacity-30 uppercase tracking-widest animate-slide-up delay-200">
          {view === 'setup' ? (
            'Configure your session settings'
          ) : (
@@ -206,7 +225,7 @@ function App() {
         onSave={setConfig}
       />
 
-      {/* Exit Confirmation Modal (Non-blocking) */}
+      {/* Exit Confirmation Modal */}
       {isExitConfirmOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className={`w-full max-w-sm rounded-xl shadow-2xl border p-6 ${modalBg} transform scale-100`}>
@@ -225,7 +244,7 @@ function App() {
               <div className="flex gap-3 w-full mt-4">
                 <button 
                   onClick={() => setIsExitConfirmOpen(false)}
-                  className={`flex-1 py-3 rounded-lg font-bold text-sm uppercase tracking-wide border transition-colors ${config.theme === 'dark' ? 'border-white/20 hover:bg-white/10' : 'border-black/20 hover:bg-black/10'}`}
+                  className={`flex-1 py-3 rounded-lg font-bold text-sm uppercase tracking-wide border transition-colors ${config.theme === 'dark' ? 'border-white/20 hover:bg-white/10' : config.theme === 'ml2025' ? 'border-ml-yellow/30 hover:bg-ml-yellow/10' : 'border-black/20 hover:bg-black/10'}`}
                 >
                   Cancel
                 </button>

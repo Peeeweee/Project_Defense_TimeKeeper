@@ -21,21 +21,18 @@ const UNIT_MULTIPLIERS: Record<TimeUnit, number> = {
 export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isOpen }) => {
   const [localConfig, setLocalConfig] = React.useState<AppConfig>(config);
   
-  // Units state for Duration
   const [units, setUnits] = useState<Record<string, TimeUnit>>({
     [Phase.SETUP]: 'min',
     [Phase.PRESENTATION]: 'min',
     [Phase.Q_AND_A]: 'min'
   });
 
-  // Units state for Warning
   const [warningUnits, setWarningUnits] = useState<Record<string, TimeUnit>>({
     [Phase.SETUP]: 'sec',
     [Phase.PRESENTATION]: 'min',
     [Phase.Q_AND_A]: 'min'
   });
 
-  // Sync local state when prop changes
   React.useEffect(() => {
     setLocalConfig(config);
   }, [config]);
@@ -44,20 +41,14 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
 
   const handleValueChange = (phase: Phase, valStr: string, isWarning = false) => {
     if (phase === Phase.COMPLETE) return;
-    
     let val = parseFloat(valStr);
-    
-    if (valStr.trim() === '') {
-      val = 0;
-    }
-
+    if (valStr.trim() === '') val = 0;
     if (isNaN(val) || val < 0) return;
 
     const unitMap = isWarning ? warningUnits : units;
     const unit = unitMap[phase] || 'min';
     const multiplier = UNIT_MULTIPLIERS[unit];
     const totalSeconds = val * multiplier;
-
     const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
 
     setLocalConfig(prev => ({
@@ -73,11 +64,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
   };
 
   const handleUnitChange = (phase: Phase, newUnit: TimeUnit, isWarning = false) => {
-    if (isWarning) {
-      setWarningUnits(prev => ({ ...prev, [phase]: newUnit }));
-    } else {
-      setUnits(prev => ({ ...prev, [phase]: newUnit }));
-    }
+    if (isWarning) setWarningUnits(prev => ({ ...prev, [phase]: newUnit }));
+    else setUnits(prev => ({ ...prev, [phase]: newUnit }));
   };
 
   const handleToggle = (key: keyof Pick<AppConfig, 'autoAdvance' | 'soundEnabled'>) => {
@@ -88,7 +76,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
     setLocalConfig(prev => ({ ...prev, tickMode: mode }));
   };
 
-  const handleThemeChange = (theme: 'dark' | 'light') => {
+  const handleThemeChange = (theme: 'dark' | 'light' | 'ml2025') => {
     setLocalConfig(prev => ({ ...prev, theme }));
   };
 
@@ -97,7 +85,8 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
     onClose();
   };
 
-  const isDark = localConfig.theme === 'dark';
+  // Styles for the modal itself should be neutral or follow current theme
+  const isDark = localConfig.theme === 'dark' || localConfig.theme === 'ml2025';
   const bgColor = isDark ? 'bg-zinc-900' : 'bg-white';
   const textColor = isDark ? 'text-white' : 'text-black';
   const borderColor = isDark ? 'border-zinc-700' : 'border-gray-200';
@@ -107,7 +96,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className={`w-full max-w-md ${bgColor} ${textColor} rounded-xl shadow-2xl border ${borderColor} overflow-hidden flex flex-col max-h-[90vh]`}>
         
-        {/* Header */}
         <div className={`p-6 border-b ${borderColor} flex justify-between items-center`}>
           <h2 className="text-xl font-bold uppercase tracking-wider">Configuration</h2>
           <button onClick={onClose} className="opacity-60 hover:opacity-100">
@@ -115,32 +103,24 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
           </button>
         </div>
 
-        {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto space-y-8">
           
           {/* Durations */}
           <div className="space-y-6">
             <h3 className="text-sm font-bold opacity-50 uppercase">Phase Settings</h3>
-            
             {[Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A].map((phase) => {
                const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
-               
-               // Duration Data
                const currentUnit = units[phase];
                const seconds = localConfig.phases[pKey].durationSeconds;
                const displayValue = parseFloat((seconds / UNIT_MULTIPLIERS[currentUnit]).toFixed(2));
-
-               // Warning Data
                const currentWarningUnit = warningUnits[phase];
                const warningSecs = localConfig.phases[pKey].warningSeconds;
                const warningDisplayValue = parseFloat((warningSecs / UNIT_MULTIPLIERS[currentWarningUnit]).toFixed(2));
 
                return (
                 <div key={phase} className={`flex flex-col gap-2 p-3 rounded-lg border ${borderColor} ${inputBg}`}>
-                  {/* Row 1: Label and Main Duration */}
                   <div className="flex items-center justify-between gap-4">
                     <label className="capitalize font-medium min-w-[100px]">{localConfig.phases[pKey].label}</label>
-                    
                     <div className={`flex-1 flex items-center border-b ${borderColor} border-opacity-30`}>
                       <input
                         type="number"
@@ -151,7 +131,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
                         onChange={(e) => handleValueChange(phase, e.target.value)}
                         className={`w-full p-2 bg-transparent text-right font-mono font-bold outline-none`}
                       />
-                      
                       <div className="relative border-l border-inherit pl-1">
                         <select 
                           value={currentUnit}
@@ -167,12 +146,9 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
                       </div>
                     </div>
                   </div>
-
-                  {/* Row 2: Warning Setting */}
                   <div className="flex items-center justify-end gap-3 mt-1">
                      <BellRing size={12} className={`opacity-50 ${warningSecs > 0 ? 'text-amber-500 opacity-100' : ''}`} />
                      <span className="text-[10px] font-bold uppercase opacity-50">Warn at:</span>
-                     
                      <div className="flex w-24 border-b border-dashed border-zinc-500/30">
                         <input
                           type="number"
@@ -201,18 +177,24 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
           {/* Appearance */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold opacity-50 uppercase">Appearance</h3>
-            <div className={`grid grid-cols-2 gap-2 p-1 rounded-lg border ${borderColor} ${inputBg}`}>
+            <div className={`grid grid-cols-3 gap-2 p-1 rounded-lg border ${borderColor} ${inputBg}`}>
               <button
                 onClick={() => handleThemeChange('dark')}
-                className={`p-2 rounded flex items-center justify-center gap-2 text-sm font-bold transition-colors ${localConfig.theme === 'dark' ? 'bg-zinc-800 text-white shadow-sm' : 'opacity-50'}`}
+                className={`p-2 rounded text-xs font-bold transition-colors ${localConfig.theme === 'dark' ? 'bg-zinc-800 text-white shadow-sm' : 'opacity-50'}`}
               >
-                Black Mode
+                Dark
               </button>
               <button
                 onClick={() => handleThemeChange('light')}
-                className={`p-2 rounded flex items-center justify-center gap-2 text-sm font-bold transition-colors ${localConfig.theme === 'light' ? 'bg-white text-black shadow-sm border border-gray-200' : 'opacity-50'}`}
+                className={`p-2 rounded text-xs font-bold transition-colors ${localConfig.theme === 'light' ? 'bg-white text-black shadow-sm border border-gray-200' : 'opacity-50'}`}
               >
-                White Mode
+                Light
+              </button>
+              <button
+                onClick={() => handleThemeChange('ml2025')}
+                className={`p-2 rounded text-xs font-bold transition-colors ${localConfig.theme === 'ml2025' ? 'bg-[#450a0f] text-[#fbbf24] shadow-sm border border-[#fbbf24]' : 'opacity-50'}`}
+              >
+                ML'25
               </button>
             </div>
           </div>
@@ -267,7 +249,6 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
           </div>
         </div>
 
-        {/* Footer */}
         <div className={`p-6 border-t ${borderColor} bg-opacity-50`}>
           <button 
             onClick={handleSave}

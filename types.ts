@@ -25,6 +25,13 @@ export interface AppConfig {
   autoAdvance: boolean;
 }
 
+export interface Preset {
+  id: string;
+  name: string;
+  config: AppConfig;
+  isDefault?: boolean;
+}
+
 export interface TimerState {
   currentPhase: Phase;
   timeLeft: number;

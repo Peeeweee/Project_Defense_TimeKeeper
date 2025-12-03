@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatTime } from '../utils/format';
-import { Phase, AppConfig } from '../types';
+import { Phase } from '../types';
 
 interface TimerDisplayProps {
   timeLeft: number;
@@ -11,10 +11,18 @@ interface TimerDisplayProps {
 }
 
 export const TimerDisplay: React.FC<TimerDisplayProps> = ({ timeLeft, totalDuration, phase, theme, warningSeconds = 0 }) => {
-  // Critical is < 60s
-  const isCritical = timeLeft < 60 && phase !== Phase.COMPLETE && phase !== Phase.SETUP;
+  // Dynamic Critical Threshold
+  // If the user sets a Warning <= 10s, we lower the Critical threshold 
+  // to ensure the Warning (Amber) has time to show before Red takes over.
+  // Example: Warning 5s -> Critical 2s. Sequence: White -> 5s(Amber) -> 2s(Red).
+  const criticalThreshold = warningSeconds > 0 && warningSeconds <= 10 
+    ? Math.floor(warningSeconds / 2) 
+    : 10;
+
+  // Critical State (Red) - The final moments
+  const isCritical = timeLeft <= criticalThreshold && phase !== Phase.COMPLETE;
   
-  // Warning is <= warningSeconds (but not critical yet if we want distinct colors, though critical usually overrides warning)
+  // Warning State (Amber) - Active within warning window but BEFORE critical threshold
   const isWarning = !isCritical && warningSeconds > 0 && timeLeft <= warningSeconds && phase !== Phase.COMPLETE;
   
   // Dynamic sizing based on viewport
@@ -81,7 +89,7 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({ timeLeft, totalDurat
 
       {/* Warning Indicator (Optional Text) */}
       {isWarning && (
-        <div className={`mt-4 text-sm font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} animate-bounce`}>
+        <div className={`mt-4 text-sm font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} animate-pulse`}>
           Warning: Time Ending Soon
         </div>
       )}

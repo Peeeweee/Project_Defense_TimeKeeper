@@ -140,6 +140,7 @@ function App() {
             <PhaseIndicator currentPhase={timer.currentPhase} theme={config.theme} />
             
             <TimerDisplay 
+              key={timer.currentPhase}
               timeLeft={timer.timeLeft} 
               totalDuration={
                 timer.currentPhase === Phase.COMPLETE 

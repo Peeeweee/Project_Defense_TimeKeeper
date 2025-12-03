@@ -284,7 +284,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
             ) : (
               <button 
                 onClick={() => setIsNamingPreset(true)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wide hover:bg-current hover:bg-opacity-10 transition-all ${themeClasses}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wide ${themeClasses} ${optionHoverBg} hover:border-current transition-all backdrop-blur-sm`}
               >
                 <Save size={14} />
                 <span>Save Config</span>

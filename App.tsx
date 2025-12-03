@@ -146,6 +146,11 @@ function App() {
                   ? 0 
                   : config.phases[timer.currentPhase as Exclude<Phase, Phase.COMPLETE>].durationSeconds
               }
+              warningSeconds={
+                timer.currentPhase === Phase.COMPLETE 
+                ? 0 
+                : config.phases[timer.currentPhase as Exclude<Phase, Phase.COMPLETE>].warningSeconds
+              }
               phase={timer.currentPhase} 
               theme={config.theme}
             />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppConfig, Phase, TickMode } from '../types';
-import { Play, Volume2, VolumeX, ArrowRight, Clock, Activity, ChevronDown, AlertCircle } from 'lucide-react';
+import { Play, Volume2, VolumeX, ArrowRight, Clock, Activity, ChevronDown, AlertCircle, BellRing } from 'lucide-react';
 import { playTickSound } from '../utils/sound';
 
 interface SetupViewProps {
@@ -26,44 +26,52 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
     [Phase.Q_AND_A]: 'min'
   });
 
+  const [warningUnits, setWarningUnits] = useState<Record<string, TimeUnit>>({
+    [Phase.SETUP]: 'sec',
+    [Phase.PRESENTATION]: 'min',
+    [Phase.Q_AND_A]: 'min'
+  });
+
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleValueChange = (phase: Phase, valueStr: string) => {
+  const handleValueChange = (phase: Phase, valueStr: string, isWarning = false) => {
     if (phase === Phase.COMPLETE) return;
     
     let val = parseFloat(valueStr);
     
-    // Fix: Allow clearing input (treat empty string as 0)
     if (valueStr.trim() === '') {
       val = 0;
     }
 
     if (isNaN(val) || val < 0) return;
 
-    // Clear error if user starts typing
     if (validationError) setValidationError(null);
 
-    const unit = units[phase] || 'min';
+    const unitMap = isWarning ? warningUnits : units;
+    const unit = unitMap[phase] || (isWarning ? 'sec' : 'min');
     const multiplier = UNIT_MULTIPLIERS[unit];
     const totalSeconds = val * multiplier;
+
+    const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
 
     onConfigChange({
       ...config,
       phases: {
         ...config.phases,
         [phase]: {
-          ...config.phases[phase as Exclude<Phase, Phase.COMPLETE>],
-          durationSeconds: totalSeconds
+          ...config.phases[pKey],
+          [isWarning ? 'warningSeconds' : 'durationSeconds']: totalSeconds
         }
       }
     });
   };
 
-  const handleUnitChange = (phase: Phase, newUnit: TimeUnit) => {
-    setUnits(prev => ({
-      ...prev,
-      [phase]: newUnit
-    }));
+  const handleUnitChange = (phase: Phase, newUnit: TimeUnit, isWarning = false) => {
+    if (isWarning) {
+      setWarningUnits(prev => ({ ...prev, [phase]: newUnit }));
+    } else {
+      setUnits(prev => ({ ...prev, [phase]: newUnit }));
+    }
   };
 
   const toggleSound = () => {
@@ -88,16 +96,24 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   };
 
   const handleStartSession = () => {
-    // Validate that no phase has 0 duration
     const phases = [Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A];
-    const invalidPhases = phases.filter(p => {
-       const key = p as Exclude<Phase, Phase.COMPLETE>;
-       return config.phases[key].durationSeconds <= 0;
-    });
+    
+    // Iterate to check for validity
+    for (const phase of phases) {
+        const key = phase as Exclude<Phase, Phase.COMPLETE>;
+        const pConfig = config.phases[key];
 
-    if (invalidPhases.length > 0) {
-      setValidationError("Please set a duration for all phases before starting.");
-      return;
+        // Check for empty/zero duration
+        if (pConfig.durationSeconds <= 0) {
+             setValidationError("Please set a duration for all phases before starting.");
+             return;
+        }
+
+        // Check for Warning >= Duration
+        if (pConfig.warningSeconds > 0 && pConfig.warningSeconds >= pConfig.durationSeconds) {
+             setValidationError(`Warning time for ${pConfig.label} must be shorter than the phase duration.`);
+             return;
+        }
     }
     
     setValidationError(null);
@@ -107,6 +123,8 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   const themeClasses = config.theme === 'dark' 
     ? 'text-white border-white/20' 
     : 'text-black border-black/20';
+  
+  const warningTextClass = config.theme === 'dark' ? 'text-amber-400' : 'text-amber-600';
 
   const getTickModeLabel = (mode: TickMode) => {
     switch (mode) {
@@ -128,20 +146,31 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-12">
         {[Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A].map((phase) => {
           const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
-          const currentUnit = units[phase];
           
-          // Calculate display value based on current unit
+          // Duration Calculation
+          const currentUnit = units[phase];
           const seconds = config.phases[pKey].durationSeconds;
           const displayValue = parseFloat((seconds / UNIT_MULTIPLIERS[currentUnit]).toFixed(2));
           
+          // Warning Calculation
+          const currentWarningUnit = warningUnits[phase];
+          const warningSecs = config.phases[pKey].warningSeconds;
+          const warningDisplayValue = parseFloat((warningSecs / UNIT_MULTIPLIERS[currentWarningUnit]).toFixed(2));
+
+          // Check if this specific phase has a warning error for visual feedback
+          const isWarningError = warningSecs > 0 && warningSecs >= seconds && seconds > 0;
+
           return (
-            <div key={phase} className={`flex flex-col p-6 rounded-xl border ${themeClasses} relative group transition-all hover:border-opacity-50`}>
+            <div key={phase} className={`flex flex-col p-6 rounded-xl border ${isWarningError ? 'border-red-500' : themeClasses} relative group transition-all hover:border-opacity-50`}>
+              
+              {/* Header */}
               <div className="flex items-center gap-2 opacity-50 mb-4">
                 <Clock size={16} />
-                <span className="text-xs font-bold uppercase tracking-wider">{config.phases[pKey].label}</span>
+                <span className={`text-xs font-bold uppercase tracking-wider ${isWarningError ? 'text-red-500' : ''}`}>{config.phases[pKey].label}</span>
               </div>
               
-              <div className="flex items-baseline gap-2">
+              {/* Main Duration Input */}
+              <div className="flex items-baseline gap-2 mb-6 border-b border-transparent group-hover:border-inherit transition-colors pb-2">
                 <input
                   type="number"
                   min="0"
@@ -149,7 +178,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
                   value={displayValue === 0 && seconds === 0 ? '' : displayValue}
                   placeholder="0"
                   onChange={(e) => handleValueChange(phase, e.target.value)}
-                  className={`text-5xl md:text-6xl font-mono font-bold w-full bg-transparent outline-none border-b-2 border-transparent hover:border-current focus:border-current transition-all p-0 leading-none placeholder-opacity-20 ${config.theme === 'dark' ? 'placeholder-white' : 'placeholder-black'}`}
+                  className={`text-5xl md:text-6xl font-mono font-bold w-full bg-transparent outline-none p-0 leading-none placeholder-opacity-20 ${config.theme === 'dark' ? 'placeholder-white' : 'placeholder-black'}`}
                 />
                 
                 <div className="relative group/select">
@@ -165,6 +194,36 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
                   </select>
                   <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none" size={14} />
                 </div>
+              </div>
+
+              {/* Warning Input */}
+              <div className="flex items-center gap-2 pt-2 border-t border-dashed border-opacity-20 border-inherit">
+                 <BellRing size={14} className={isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : "opacity-30")} />
+                 <span className={`text-xs font-bold uppercase opacity-50 ${isWarningError ? 'text-red-500 opacity-100' : ''}`}>Warn at:</span>
+                 
+                 <div className="flex-1 flex items-baseline gap-1">
+                   <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={warningDisplayValue === 0 && warningSecs === 0 ? '' : warningDisplayValue}
+                    placeholder="0"
+                    onChange={(e) => handleValueChange(phase, e.target.value, true)}
+                    className={`w-full bg-transparent text-right font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : '')}`}
+                   />
+                   
+                   <div className="relative">
+                      <select 
+                        value={currentWarningUnit}
+                        onChange={(e) => handleUnitChange(phase, e.target.value as TimeUnit, true)}
+                        className={`appearance-none bg-transparent text-xs font-bold uppercase cursor-pointer pr-3 outline-none ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : 'opacity-50')}`}
+                      >
+                        <option value="sec" className="text-black">sec</option>
+                        <option value="min" className="text-black">min</option>
+                        <option value="hr" className="text-black">hr</option>
+                      </select>
+                   </div>
+                 </div>
               </div>
             </div>
           );

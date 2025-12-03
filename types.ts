@@ -13,6 +13,7 @@ export enum TickMode {
 
 export interface PhaseConfig {
   durationSeconds: number;
+  warningSeconds: number; // Time remaining to trigger warning (0 = disabled)
   label: string;
 }
 

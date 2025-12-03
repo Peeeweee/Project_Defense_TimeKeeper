@@ -41,6 +41,38 @@ export const playAlertSound = () => {
   }
 };
 
+export const playWarningSound = () => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+    const gainNode = ctx.createGain();
+    gainNode.connect(ctx.destination);
+    
+    // Create two beeps
+    [0, 0.2].forEach(offset => {
+      const osc = ctx.createOscillator();
+      osc.connect(gainNode);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(660, now + offset); // E5
+      
+      gainNode.gain.setValueAtTime(0.1, now + offset);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.1);
+      
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.1);
+    });
+
+  } catch (e) {
+    console.error("Warning playback failed", e);
+  }
+};
+
 export const playTickSound = () => {
   try {
     const ctx = getAudioContext();

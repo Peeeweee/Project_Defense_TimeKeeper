@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Phase, AppConfig, TimerState, TickMode } from '../types';
 import { PHASE_ORDER } from '../constants';
-import { playAlertSound, playTickSound } from '../utils/sound';
+import { playAlertSound, playTickSound, playWarningSound } from '../utils/sound';
 
 export const useDefenseTimer = (config: AppConfig) => {
   const [timerState, setTimerState] = useState<TimerState>({
@@ -57,9 +57,16 @@ export const useDefenseTimer = (config: AppConfig) => {
       }
       
       const nextTime = prev.timeLeft - 1;
+      
+      const currentPhaseConfig = config.phases[prev.currentPhase as Exclude<Phase, Phase.COMPLETE>];
 
-      // Handle Ticking Sound
       if (config.soundEnabled) {
+        // Warning Sound
+        if (currentPhaseConfig && currentPhaseConfig.warningSeconds > 0 && nextTime === currentPhaseConfig.warningSeconds) {
+          playWarningSound();
+        }
+
+        // Ticking Sound
         const shouldTick = 
           config.tickMode === TickMode.EVERY_SECOND ||
           (config.tickMode === TickMode.LAST_TEN && nextTime <= 10 && nextTime >= 0);
@@ -71,7 +78,7 @@ export const useDefenseTimer = (config: AppConfig) => {
 
       return { ...prev, timeLeft: nextTime };
     });
-  }, [config.soundEnabled, config.tickMode]);
+  }, [config.soundEnabled, config.tickMode, config.phases]);
 
   // Timer interval
   useEffect(() => {

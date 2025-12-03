@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Maximize2, Minimize2, Home, AlertTriangle } from 'lucide-react';
+import { Settings as SettingsIcon, Maximize2, Minimize2, Home, AlertTriangle, Sun, Moon } from 'lucide-react';
 import { useDefenseTimer } from './hooks/useDefenseTimer';
 import { TimerDisplay } from './components/TimerDisplay';
 import { Controls } from './components/Controls';
@@ -43,6 +43,10 @@ function App() {
         setIsFullscreen(false);
       }
     }
+  };
+
+  const toggleTheme = () => {
+    setConfig(prev => ({ ...prev, theme: prev.theme === 'dark' ? 'light' : 'dark' }));
   };
 
   const handleStartSession = () => {
@@ -92,7 +96,16 @@ function App() {
           </div>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+           {/* Theme Toggle */}
+           <button 
+             onClick={toggleTheme}
+             className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
+             title={`Switch to ${config.theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+           >
+             {config.theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
+           </button>
+
            {/* Home / New Session Button */}
            {view === 'timer' && (
              <button 

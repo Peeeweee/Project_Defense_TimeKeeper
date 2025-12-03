@@ -404,7 +404,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
       <div className="flex flex-wrap items-center justify-center gap-6 mb-16">
         <button 
           onClick={toggleSound}
-          className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} hover:bg-opacity-10 hover:bg-current transition-all`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} hover:bg-transparent hover:border-current transition-all`}
         >
           {config.soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
           <span className="text-sm font-bold uppercase tracking-wider">
@@ -414,7 +414,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
         <button 
           onClick={cycleTickMode}
-          className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} hover:bg-opacity-10 hover:bg-current transition-all`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} hover:bg-transparent hover:border-current transition-all`}
         >
           <Activity size={20} className={config.tickMode !== TickMode.NONE ? "text-blue-500" : "opacity-50"} />
           <span className="text-sm font-bold uppercase tracking-wider">
@@ -424,7 +424,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
         <button 
           onClick={toggleAutoAdvance}
-          className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} hover:bg-opacity-10 hover:bg-current transition-all`}
+          className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} hover:bg-transparent hover:border-current transition-all`}
         >
           <ArrowRight size={20} className={config.autoAdvance ? "text-green-500" : "opacity-50"} />
           <span className="text-sm font-bold uppercase tracking-wider">

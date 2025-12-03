@@ -1,0 +1,5 @@
+{
+  "name": "Defense TimeKeeper",
+  "description": "A minimalist, distraction-free timer designed for research defenses. Features configurable phases for setup, presentation, and Q&A with auto-advance and visual cues.",
+  "requestFramePermissions": []
+}

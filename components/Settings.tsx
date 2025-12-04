@@ -22,13 +22,11 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
   const [localConfig, setLocalConfig] = React.useState<AppConfig>(config);
   
   const [units, setUnits] = useState<Record<string, TimeUnit>>({
-    [Phase.SETUP]: 'min',
     [Phase.PRESENTATION]: 'min',
     [Phase.Q_AND_A]: 'min'
   });
 
   const [warningUnits, setWarningUnits] = useState<Record<string, TimeUnit>>({
-    [Phase.SETUP]: 'sec',
     [Phase.PRESENTATION]: 'min',
     [Phase.Q_AND_A]: 'min'
   });
@@ -108,7 +106,7 @@ export const Settings: React.FC<SettingsProps> = ({ config, onSave, onClose, isO
           {/* Durations */}
           <div className="space-y-6">
             <h3 className="text-sm font-bold opacity-50 uppercase">Phase Settings</h3>
-            {[Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A].map((phase) => {
+            {[Phase.PRESENTATION, Phase.Q_AND_A].map((phase) => {
                const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
                const currentUnit = units[phase];
                const seconds = localConfig.phases[pKey].durationSeconds;

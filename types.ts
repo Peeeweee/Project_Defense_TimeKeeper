@@ -1,5 +1,4 @@
 export enum Phase {
-  SETUP = 'SETUP',
   PRESENTATION = 'PRESENTATION',
   Q_AND_A = 'Q_AND_A',
   COMPLETE = 'COMPLETE'
@@ -37,4 +36,5 @@ export interface TimerState {
   timeLeft: number;
   isRunning: boolean;
   isPaused: boolean;
+  presenterCount: number;
 }

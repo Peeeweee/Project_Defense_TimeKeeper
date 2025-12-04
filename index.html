@@ -5,85 +5,245 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Defense TimeKeeper</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              mono: ['"Fira Code"', 'monospace'],
+              mono: ['"Fira Code"', "monospace"],
             },
             colors: {
               ml: {
-                bg: '#450a0f',      // Deep Maroon
-                yellow: '#fbbf24',  // Amber-400
-                orange: '#f97316',  // Orange-500
-                white: '#ffffff',
-              }
-            }
-          }
-        }
-      }
+                bg: "#450a0f", // Deep Maroon
+                yellow: "#fbbf24", // Amber-400
+                orange: "#f97316", // Orange-500
+                white: "#ffffff",
+              },
+            },
+          },
+        },
+      };
     </script>
     <style>
       body {
-        font-family: 'Fira Code', monospace;
+        font-family: "Fira Code", monospace;
       }
       /* Smooth transitions for theme switching */
       .theme-transition {
-        transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+        transition: background-color 0.5s ease, color 0.5s ease,
+          border-color 0.5s ease;
       }
 
       /* Custom Geometric Pattern for ML2025 Theme */
       .bg-pattern-ml2025 {
         background-color: #450a0f;
-        background-image: 
-          radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.05) 20%, transparent 20%),
-          radial-gradient(circle at 0% 0%, rgba(251, 191, 36, 0.05) 20%, transparent 20%),
-          radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.03) 20%, transparent 20%);
+        background-image: radial-gradient(
+            circle at 100% 100%,
+            rgba(251, 191, 36, 0.05) 20%,
+            transparent 20%
+          ),
+          radial-gradient(
+            circle at 0% 0%,
+            rgba(251, 191, 36, 0.05) 20%,
+            transparent 20%
+          ),
+          radial-gradient(
+            circle at 50% 50%,
+            rgba(249, 115, 22, 0.03) 20%,
+            transparent 20%
+          );
         background-size: 6rem 6rem;
       }
 
       /* Animation Utilities */
       @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       @keyframes scaleIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
       }
       @keyframes shimmer {
-        0% { opacity: 0.5; }
-        50% { opacity: 1; }
-        100% { opacity: 0.5; }
+        0% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.5;
+        }
       }
-      
+
       .animate-slide-up {
         animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
       .animate-scale-in {
         animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      
-      .delay-100 { animation-delay: 100ms; }
-      .delay-200 { animation-delay: 200ms; }
-      .delay-300 { animation-delay: 300ms; }
+
+      .delay-100 {
+        animation-delay: 100ms;
+      }
+      .delay-200 {
+        animation-delay: 200ms;
+      }
+      .delay-300 {
+        animation-delay: 300ms;
+      }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1"
-  }
-}
-</script>
-</head>
+    <script type="importmap">
+      {
+        "imports": {
+          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+          "react/": "https://aistudiocdn.com/react@^19.2.1/",
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Defense TimeKeeper</title>
+          <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              mono: ['"Fira Code"', "monospace"],
+            },
+            colors: {
+              ml: {
+                bg: "#450a0f", // Deep Maroon
+                yellow: "#fbbf24", // Amber-400
+                orange: "#f97316", // Orange-500
+                white: "#ffffff",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Fira Code", monospace;
+      }
+      /* Smooth transitions for theme switching */
+      .theme-transition {
+        transition: background-color 0.5s ease, color 0.5s ease,
+          border-color 0.5s ease;
+      }
+
+      /* Custom Geometric Pattern for ML2025 Theme */
+      .bg-pattern-ml2025 {
+        background-color: #450a0f;
+        background-image: radial-gradient(
+            circle at 100% 100%,
+            rgba(251, 191, 36, 0.05) 20%,
+            transparent 20%
+          ),
+          radial-gradient(
+            circle at 0% 0%,
+            rgba(251, 191, 36, 0.05) 20%,
+            transparent 20%
+          ),
+          radial-gradient(
+            circle at 50% 50%,
+            rgba(249, 115, 22, 0.03) 20%,
+            transparent 20%
+          );
+        background-size: 6rem 6rem;
+      }
+
+      /* Animation Utilities */
+      @keyframes slideUpFade {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes shimmer {
+        0% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.5;
+        }
+      }
+
+      .animate-slide-up {
+        animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .animate-scale-in {
+        animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      .delay-100 {
+        animation-delay: 100ms;
+      }
+      .delay-200 {
+        animation-delay: 200ms;
+      }
+      .delay-300 {
+        animation-delay: 300ms;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+          "react/": "https://aistudiocdn.com/react@^19.2.1/",
+          "react": "https://aistudiocdn.com/react@^19.2.1"
+        }
+      }
+    </script>
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -16,26 +16,45 @@ export const playAlertSound = () => {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    // Resume context if suspended (browser policy)
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
 
-    const oscillator = ctx.createOscillator();
+    const now = ctx.currentTime;
     const gainNode = ctx.createGain();
-
-    oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime); // A5
-    oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5); // Drop to A4
+    // OG ALARM CLOCK SOUND
+    // Classic "Beep-Beep-Beep-Beep" pattern
+    // 4Hz modulation: 0.125s ON, 0.125s OFF
+    // 4 beeps per sequence, then pause
+    
+    const baseFreq = 2000; // Classic high pitch
+    const beepLength = 0.1;
+    const gapLength = 0.1;
+    const sequenceGap = 0.5;
 
-    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    // Create 4 sequences of 4 beeps
+    for (let seq = 0; seq < 4; seq++) {
+      const seqStart = now + (seq * (4 * (beepLength + gapLength) + sequenceGap));
+      
+      for (let beep = 0; beep < 4; beep++) {
+        const start = seqStart + (beep * (beepLength + gapLength));
+        
+        const osc = ctx.createOscillator();
+        osc.connect(gainNode);
+        osc.type = 'square'; // Square wave for "digital" sound
+        osc.frequency.setValueAtTime(baseFreq, start);
+        
+        gainNode.gain.setValueAtTime(0.15, start);
+        gainNode.gain.setValueAtTime(0.15, start + beepLength - 0.01);
+        gainNode.gain.linearRampToValueAtTime(0, start + beepLength);
 
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.5);
+        osc.start(start);
+        osc.stop(start + beepLength);
+      }
+    }
+
   } catch (e) {
     console.error("Audio playback failed", e);
   }
@@ -51,21 +70,28 @@ export const playWarningSound = () => {
     }
 
     const now = ctx.currentTime;
-    const gainNode = ctx.createGain();
-    gainNode.connect(ctx.destination);
+    const masterGain = ctx.createGain();
+    masterGain.connect(ctx.destination);
     
-    // Create two beeps
-    [0, 0.2].forEach(offset => {
+    // BELL SOUND
+    // Mix of sine waves at non-integer ratios for metallic timbre
+    const ratios = [1.0, 2.0, 3.0, 4.2, 5.4];
+    const baseFreq = 600;
+
+    ratios.forEach((ratio, i) => {
       const osc = ctx.createOscillator();
-      osc.connect(gainNode);
+      osc.connect(masterGain);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(660, now + offset); // E5
+      osc.frequency.setValueAtTime(baseFreq * ratio, now);
       
-      gainNode.gain.setValueAtTime(0.1, now + offset);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.1);
-      
-      osc.start(now + offset);
-      osc.stop(now + offset + 0.1);
+      // Sharp attack, long exponential decay
+      const gain = 0.3 / (i + 1); // Higher partials are quieter
+      masterGain.gain.setValueAtTime(0, now);
+      masterGain.gain.linearRampToValueAtTime(gain, now + 0.01);
+      masterGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5); // Long ring
+
+      osc.start(now);
+      osc.stop(now + 1.5);
     });
 
   } catch (e) {

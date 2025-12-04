@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Maximize2, Minimize2, Home, AlertTriangle, Sun, Moon, Palette } from 'lucide-react';
+import { Settings as SettingsIcon, Maximize2, Minimize2, Home, AlertTriangle, Sun, Moon, Palette, ExternalLink } from 'lucide-react';
 import { useDefenseTimer } from './hooks/useDefenseTimer';
 import { TimerDisplay } from './components/TimerDisplay';
 import { Controls } from './components/Controls';
 import { PhaseIndicator } from './components/PhaseIndicator';
 import { Settings } from './components/Settings';
 import { SetupView } from './components/SetupView';
+import { LiveView } from './components/LiveView';
 import { DEFAULT_CONFIG } from './constants';
 import { AppConfig, Phase } from './types';
 
 function App() {
+  // Simple routing check
+  const isLiveView = window.location.pathname === '/live';
+
   // Load config from local storage or default
   const [config, setConfig] = useState<AppConfig>(() => {
     try {
@@ -76,6 +80,15 @@ function App() {
     setIsExitConfirmOpen(false);
   };
 
+  const openLiveView = () => {
+    window.open('/live', 'DefenseTimerLive', 'width=800,height=600');
+  };
+
+  // If we are in Live View mode, render only that component
+  if (isLiveView) {
+    return <LiveView />;
+  }
+
   // Determine main App container classes based on theme
   let themeClasses = '';
   let iconColor = '';
@@ -115,6 +128,18 @@ function App() {
         </div>
         
         <div className="flex gap-4 items-center">
+           {/* Live View Button */}
+           <button 
+             onClick={openLiveView}
+             className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide opacity-50 hover:opacity-100 transition-all ${config.theme === 'dark' ? 'border-white/20 hover:bg-white/10' : config.theme === 'ml2025' ? 'border-ml-yellow/30 hover:bg-ml-yellow/10' : 'border-black/20 hover:bg-black/5'}`}
+             title="Open Projector View"
+           >
+             <ExternalLink size={14} />
+             <span className="hidden md:inline">Live View</span>
+           </button>
+
+           <div className="h-6 w-px bg-current opacity-20"></div>
+
            {/* Theme Toggle */}
            <button 
              onClick={toggleTheme}
@@ -165,6 +190,8 @@ function App() {
             config={config} 
             onConfigChange={setConfig} 
             onStart={handleStartSession} 
+            presenterCount={timer.presenterCount}
+            onPresenterCountChange={timer.setPresenterCount}
           />
         ) : (
           <>
@@ -213,6 +240,8 @@ function App() {
              {timer.isRunning ? 'Timer Running' : timer.isPaused ? 'Timer Paused' : 'Ready'}
              {' • '}
              {config.autoAdvance ? 'Auto-Advance On' : 'Manual Advance'}
+             {' • '}
+             Presenter #{timer.presenterCount}
            </>
          )}
       </footer>

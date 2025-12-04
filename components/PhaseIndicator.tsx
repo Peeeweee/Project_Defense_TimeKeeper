@@ -9,7 +9,7 @@ interface PhaseIndicatorProps {
 
 export const PhaseIndicator: React.FC<PhaseIndicatorProps> = ({ currentPhase, theme }) => {
   // Filter out COMPLETE for the stepper
-  const steps = [Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A];
+  const steps = [Phase.PRESENTATION, Phase.Q_AND_A];
 
   return (
     <div className="flex items-center justify-center w-full max-w-2xl gap-2 md:gap-4 px-4">

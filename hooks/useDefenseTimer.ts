@@ -5,13 +5,19 @@ import { playAlertSound, playTickSound, playWarningSound } from '../utils/sound'
 
 export const useDefenseTimer = (config: AppConfig) => {
   const [timerState, setTimerState] = useState<TimerState>({
-    currentPhase: Phase.SETUP,
-    timeLeft: config.phases[Phase.SETUP].durationSeconds,
+    currentPhase: Phase.PRESENTATION,
+    timeLeft: config.phases[Phase.PRESENTATION].durationSeconds,
     isRunning: false,
     isPaused: false,
+    presenterCount: 1
   });
 
   const timerRef = useRef<number | null>(null);
+
+  // Sync state to localStorage for Live View
+  useEffect(() => {
+    localStorage.setItem('defense-timer-state', JSON.stringify(timerState));
+  }, [timerState]);
 
   // When config changes (e.g. settings update), if we are in that phase and not running, update time
   useEffect(() => {
@@ -30,12 +36,13 @@ export const useDefenseTimer = (config: AppConfig) => {
 
     if (nextPhase && nextPhase !== Phase.COMPLETE) {
       if (config.soundEnabled) playAlertSound();
-      setTimerState({
+      setTimerState(prev => ({
+        ...prev,
         currentPhase: nextPhase,
         timeLeft: config.phases[nextPhase as Exclude<Phase, Phase.COMPLETE>].durationSeconds,
         isRunning: config.autoAdvance, // Auto-continue if enabled
         isPaused: !config.autoAdvance,
-      });
+      }));
     } else {
       // Complete
       if (config.soundEnabled) playAlertSound();
@@ -99,12 +106,13 @@ export const useDefenseTimer = (config: AppConfig) => {
   const pause = () => setTimerState(prev => ({ ...prev, isRunning: false, isPaused: true }));
   
   const resetSession = () => {
-    setTimerState({
-      currentPhase: Phase.SETUP,
-      timeLeft: config.phases[Phase.SETUP].durationSeconds,
+    setTimerState(prev => ({
+      ...prev,
+      currentPhase: Phase.PRESENTATION,
+      timeLeft: config.phases[Phase.PRESENTATION].durationSeconds,
       isRunning: false,
       isPaused: false,
-    });
+    }));
   };
 
   const restartPhase = () => {
@@ -122,12 +130,17 @@ export const useDefenseTimer = (config: AppConfig) => {
     advancePhase();
   };
 
+  const setPresenterCount = (count: number) => {
+    setTimerState(prev => ({ ...prev, presenterCount: count }));
+  };
+
   return {
     ...timerState,
     start,
     pause,
     resetSession,
     restartPhase,
-    skipPhase
+    skipPhase,
+    setPresenterCount
   };
 };

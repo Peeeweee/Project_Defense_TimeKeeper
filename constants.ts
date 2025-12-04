@@ -2,19 +2,14 @@ import { AppConfig, Phase, TickMode, Preset } from './types';
 
 export const DEFAULT_CONFIG: AppConfig = {
   phases: {
-    [Phase.SETUP]: {
-      durationSeconds: 5 * 60, // 5 minutes
-      warningSeconds: 60, // Warn at 1 minute
-      label: 'Setup'
-    },
     [Phase.PRESENTATION]: {
-      durationSeconds: 20 * 60, // 20 minutes
-      warningSeconds: 5 * 60, // Warn at 5 minutes
-      label: 'Presentation'
+      durationSeconds: 10 * 60, // 10 minutes
+      warningSeconds: 60, // Warn at 1 minute
+      label: 'Setup & Presentation'
     },
     [Phase.Q_AND_A]: {
-      durationSeconds: 15 * 60, // 15 minutes
-      warningSeconds: 2 * 60, // Warn at 2 minutes
+      durationSeconds: 5 * 60, // 5 minutes
+      warningSeconds: 60, // Warn at 1 minute
       label: 'Q&A'
     }
   },
@@ -38,18 +33,13 @@ export const DEFAULT_PRESETS: Preset[] = [
     config: {
       ...DEFAULT_CONFIG,
       phases: {
-        [Phase.SETUP]: {
-          durationSeconds: 60,
-          warningSeconds: 10,
-          label: 'Setup'
-        },
         [Phase.PRESENTATION]: {
-          durationSeconds: 10 * 60,
-          warningSeconds: 60,
-          label: 'Presentation'
+          durationSeconds: 5 * 60,
+          warningSeconds: 30,
+          label: 'Setup & Presentation'
         },
         [Phase.Q_AND_A]: {
-          durationSeconds: 5 * 60,
+          durationSeconds: 2 * 60,
           warningSeconds: 30,
           label: 'Q&A'
         }
@@ -63,19 +53,14 @@ export const DEFAULT_PRESETS: Preset[] = [
     config: {
       ...DEFAULT_CONFIG,
       phases: {
-        [Phase.SETUP]: {
-          durationSeconds: 10 * 60,
-          warningSeconds: 120,
-          label: 'Setup'
-        },
         [Phase.PRESENTATION]: {
-          durationSeconds: 45 * 60,
-          warningSeconds: 300,
-          label: 'Presentation'
+          durationSeconds: 20 * 60,
+          warningSeconds: 120,
+          label: 'Setup & Presentation'
         },
         [Phase.Q_AND_A]: {
-          durationSeconds: 30 * 60,
-          warningSeconds: 300,
+          durationSeconds: 10 * 60,
+          warningSeconds: 60,
           label: 'Q&A'
         }
       }
@@ -83,4 +68,4 @@ export const DEFAULT_PRESETS: Preset[] = [
   }
 ];
 
-export const PHASE_ORDER = [Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A, Phase.COMPLETE];
+export const PHASE_ORDER = [Phase.PRESENTATION, Phase.Q_AND_A, Phase.COMPLETE];

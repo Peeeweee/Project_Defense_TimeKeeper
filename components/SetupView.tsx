@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AppConfig, Phase, TickMode, Preset } from '../types';
-import { Play, Volume2, VolumeX, ArrowRight, Clock, Activity, ChevronDown, AlertCircle, BellRing, Save, Trash2, FolderOpen, Check, X } from 'lucide-react';
+import { Play, Volume2, VolumeX, ArrowRight, Clock, Activity, ChevronDown, AlertCircle, BellRing, Save, Trash2, FolderOpen, Check, X, ChevronUp, Users } from 'lucide-react';
 import { playTickSound } from '../utils/sound';
 import { DEFAULT_PRESETS } from '../constants';
 
@@ -8,26 +8,11 @@ interface SetupViewProps {
   config: AppConfig;
   onConfigChange: (newConfig: AppConfig) => void;
   onStart: () => void;
+  presenterCount: number;
+  onPresenterCountChange: (count: number) => void;
 }
 
-type TimeUnit = 'sec' | 'min' | 'hr' | 'day';
-
-const UNIT_MULTIPLIERS: Record<TimeUnit, number> = {
-  sec: 1,
-  min: 60,
-  hr: 3600,
-  day: 86400
-};
-
-const getOptimalUnit = (seconds: number): TimeUnit => {
-  if (seconds === 0) return 'min';
-  if (seconds % 86400 === 0) return 'day';
-  if (seconds % 3600 === 0) return 'hr';
-  if (seconds % 60 === 0) return 'min';
-  return 'sec';
-};
-
-export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, onStart }) => {
+export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, onStart, presenterCount, onPresenterCountChange }) => {
   const [presets, setPresets] = useState<Preset[]>(() => {
     try {
       const saved = localStorage.getItem('defense-timer-presets');
@@ -41,51 +26,31 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const [isNamingPreset, setIsNamingPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
-
-  const [units, setUnits] = useState<Record<string, TimeUnit>>({
-    [Phase.SETUP]: 'min',
-    [Phase.PRESENTATION]: 'min',
-    [Phase.Q_AND_A]: 'min'
-  });
-
-  const [warningUnits, setWarningUnits] = useState<Record<string, TimeUnit>>({
-    [Phase.SETUP]: 'sec',
-    [Phase.PRESENTATION]: 'min',
-    [Phase.Q_AND_A]: 'min'
-  });
-
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const newUnits = { ...units };
-    const newWarningUnits = { ...warningUnits };
-    
-    [Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A].forEach(phase => {
-        const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
-        newUnits[phase] = getOptimalUnit(config.phases[pKey].durationSeconds);
-        newWarningUnits[phase] = getOptimalUnit(config.phases[pKey].warningSeconds);
-    });
-    
-    setUnits(newUnits);
-    setWarningUnits(newWarningUnits);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleValueChange = (phase: Phase, valueStr: string, isWarning = false) => {
+  const handleTimeChange = (phase: Phase, type: 'min' | 'sec', valueStr: string, isWarning = false) => {
     if (phase === Phase.COMPLETE) return;
     if (selectedPresetId) setSelectedPresetId('');
 
-    let val = parseFloat(valueStr);
+    let val = parseInt(valueStr);
     if (valueStr.trim() === '') val = 0;
     if (isNaN(val) || val < 0) return;
-    if (validationError) setValidationError(null);
-
-    const unitMap = isWarning ? warningUnits : units;
-    const unit = unitMap[phase] || (isWarning ? 'sec' : 'min');
-    const multiplier = UNIT_MULTIPLIERS[unit];
-    const totalSeconds = val * multiplier;
+    if (type === 'sec' && val >= 60) return; // Cap seconds at 59
 
     const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
+    const currentSeconds = isWarning ? config.phases[pKey].warningSeconds : config.phases[pKey].durationSeconds;
+    
+    const currentMin = Math.floor(currentSeconds / 60);
+    const currentSec = currentSeconds % 60;
+
+    let newTotalSeconds = 0;
+    if (type === 'min') {
+      newTotalSeconds = (val * 60) + currentSec;
+    } else {
+      newTotalSeconds = (currentMin * 60) + val;
+    }
+
+    if (validationError) setValidationError(null);
 
     onConfigChange({
       ...config,
@@ -93,18 +58,23 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
         ...config.phases,
         [phase]: {
           ...config.phases[pKey],
-          [isWarning ? 'warningSeconds' : 'durationSeconds']: totalSeconds
+          [isWarning ? 'warningSeconds' : 'durationSeconds']: newTotalSeconds
         }
       }
     });
   };
 
-  const handleUnitChange = (phase: Phase, newUnit: TimeUnit, isWarning = false) => {
-    if (isWarning) {
-      setWarningUnits(prev => ({ ...prev, [phase]: newUnit }));
-    } else {
-      setUnits(prev => ({ ...prev, [phase]: newUnit }));
-    }
+  const incrementTime = (phase: Phase, type: 'min' | 'sec', amount: number, isWarning = false) => {
+    const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
+    const currentSeconds = isWarning ? config.phases[pKey].warningSeconds : config.phases[pKey].durationSeconds;
+    const currentMin = Math.floor(currentSeconds / 60);
+    const currentSec = currentSeconds % 60;
+    
+    let newVal = type === 'min' ? currentMin + amount : currentSec + amount;
+    if (newVal < 0) newVal = type === 'sec' ? 59 : 0;
+    if (type === 'sec' && newVal >= 60) newVal = 0;
+    
+    handleTimeChange(phase, type, newVal.toString(), isWarning);
   };
 
   const handleLoadPreset = (id: string) => {
@@ -112,15 +82,6 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
     if (!preset) return;
     setSelectedPresetId(id);
     onConfigChange(preset.config);
-    const newUnits: Record<string, TimeUnit> = {};
-    const newWarningUnits: Record<string, TimeUnit> = {};
-    [Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A].forEach(phase => {
-       const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
-       newUnits[phase] = getOptimalUnit(preset.config.phases[pKey].durationSeconds);
-       newWarningUnits[phase] = getOptimalUnit(preset.config.phases[pKey].warningSeconds);
-    });
-    setUnits(newUnits);
-    setWarningUnits(newWarningUnits);
     setValidationError(null);
   };
 
@@ -161,7 +122,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   };
 
   const handleStartSession = () => {
-    const phases = [Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A];
+    const phases = [Phase.PRESENTATION, Phase.Q_AND_A];
     for (const phase of phases) {
         const key = phase as Exclude<Phase, Phase.COMPLETE>;
         const pConfig = config.phases[key];
@@ -183,38 +144,38 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   let warningTextClass = '';
   let placeholderColor = '';
   let inputColor = '';
-  let borderColor = '';
   let selectOptionClass = '';
   let startBtnClass = '';
   let optionHoverBg = '';
+  let spinBtnHover = '';
   
   if (config.theme === 'dark') {
     themeClasses = 'text-white border-white/20';
     warningTextClass = 'text-amber-400';
     placeholderColor = 'placeholder-white';
     inputColor = 'text-white';
-    borderColor = 'border-white';
     selectOptionClass = 'text-black';
     startBtnClass = 'bg-white text-black hover:bg-gray-200';
     optionHoverBg = 'hover:bg-white/10';
+    spinBtnHover = 'hover:bg-white/20';
   } else if (config.theme === 'light') {
     themeClasses = 'text-black border-black/20';
     warningTextClass = 'text-amber-600';
     placeholderColor = 'placeholder-black';
     inputColor = 'text-black';
-    borderColor = 'border-black';
     selectOptionClass = 'text-black';
     startBtnClass = 'bg-black text-white hover:bg-gray-800';
     optionHoverBg = 'hover:bg-black/5';
+    spinBtnHover = 'hover:bg-black/10';
   } else if (config.theme === 'ml2025') {
     themeClasses = 'text-ml-yellow border-ml-yellow/20';
     warningTextClass = 'text-ml-orange';
     placeholderColor = 'placeholder-ml-yellow';
     inputColor = 'text-ml-yellow';
-    borderColor = 'border-ml-yellow';
     selectOptionClass = 'text-black';
     startBtnClass = 'bg-ml-yellow text-ml-bg hover:bg-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.2)]';
     optionHoverBg = 'hover:bg-ml-yellow/10';
+    spinBtnHover = 'hover:bg-ml-yellow/20';
   }
 
   const getTickModeLabel = (mode: TickMode) => {
@@ -226,6 +187,48 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   };
 
   const selectedPreset = presets.find(p => p.id === selectedPresetId);
+
+  const TimeInputGroup = ({ 
+    value, 
+    onChange, 
+    onIncrement, 
+    onDecrement, 
+    label, 
+    max = 99 
+  }: { 
+    value: number, 
+    onChange: (val: string) => void, 
+    onIncrement: () => void, 
+    onDecrement: () => void, 
+    label: string,
+    max?: number
+  }) => (
+    <div className="flex flex-col items-center gap-1">
+      <button onClick={onIncrement} className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}>
+        <ChevronUp size={16} />
+      </button>
+      <input
+        type="number"
+        min="0"
+        max={max}
+        value={value < 10 ? `0${value}` : value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`text-5xl md:text-6xl font-mono font-bold w-24 text-center bg-transparent outline-none p-0 leading-none appearance-none ${placeholderColor} ${inputColor}`}
+        style={{ MozAppearance: 'textfield' }}
+      />
+      <button onClick={onDecrement} className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}>
+        <ChevronDown size={16} />
+      </button>
+      <span className="text-xs uppercase opacity-30 font-bold tracking-widest mt-1">{label}</span>
+      <style>{`
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+      `}</style>
+    </div>
+  );
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-6 py-12">
@@ -293,17 +296,47 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
          </div>
       </div>
 
+      {/* Presenter Count Input */}
+      <div className={`flex items-center gap-4 mb-8 p-4 rounded-lg border bg-opacity-5 animate-slide-up delay-150 ${themeClasses}`}>
+        <Users size={20} className="opacity-70" />
+        <span className="text-sm font-bold uppercase tracking-wider opacity-70">Current Presenter:</span>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onPresenterCountChange(Math.max(1, presenterCount - 1))}
+            className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
+          >
+            <ChevronDown size={20} />
+          </button>
+          <input
+            type="number"
+            min="1"
+            value={presenterCount}
+            onChange={(e) => onPresenterCountChange(Math.max(1, parseInt(e.target.value) || 1))}
+            className={`text-2xl font-mono font-bold w-16 text-center bg-transparent outline-none p-0 leading-none appearance-none ${inputColor}`}
+            style={{ MozAppearance: 'textfield' }}
+          />
+          <button 
+            onClick={() => onPresenterCountChange(presenterCount + 1)}
+            className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
+          >
+            <ChevronUp size={20} />
+          </button>
+        </div>
+      </div>
+
       {/* Phase Durations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-12">
-        {[Phase.SETUP, Phase.PRESENTATION, Phase.Q_AND_A].map((phase, index) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mb-12">
+        {[Phase.PRESENTATION, Phase.Q_AND_A].map((phase, index) => {
           const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
-          const currentUnit = units[phase];
           const seconds = config.phases[pKey].durationSeconds;
-          const displayValue = parseFloat((seconds / UNIT_MULTIPLIERS[currentUnit]).toFixed(2));
-          const currentWarningUnit = warningUnits[phase];
           const warningSecs = config.phases[pKey].warningSeconds;
-          const warningDisplayValue = parseFloat((warningSecs / UNIT_MULTIPLIERS[currentWarningUnit]).toFixed(2));
           const isWarningError = warningSecs > 0 && warningSecs >= seconds && seconds > 0;
+
+          const durationMin = Math.floor(seconds / 60);
+          const durationSec = seconds % 60;
+          
+          const warningMin = Math.floor(warningSecs / 60);
+          const warningSec = warningSecs % 60;
 
           return (
             <div 
@@ -315,53 +348,57 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
                 <Clock size={16} />
                 <span className={`text-xs font-bold uppercase tracking-wider ${isWarningError ? 'text-red-500' : ''}`}>{config.phases[pKey].label}</span>
               </div>
-              <div className="flex items-baseline gap-2 mb-6 border-b border-transparent group-hover:border-inherit transition-colors pb-2">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={displayValue === 0 && seconds === 0 ? '' : displayValue}
-                  placeholder="0"
-                  onChange={(e) => handleValueChange(phase, e.target.value)}
-                  className={`text-5xl md:text-6xl font-mono font-bold w-full bg-transparent outline-none p-0 leading-none placeholder-opacity-20 ${placeholderColor} ${inputColor}`}
+              
+              {/* Duration Input */}
+              <div className="flex items-start justify-center gap-4 mb-6">
+                <TimeInputGroup 
+                  value={durationMin} 
+                  onChange={(v) => handleTimeChange(phase, 'min', v)}
+                  onIncrement={() => incrementTime(phase, 'min', 1)}
+                  onDecrement={() => incrementTime(phase, 'min', -1)}
+                  label="MIN"
                 />
-                <div className="relative group/select">
-                  <select 
-                    value={currentUnit}
-                    onChange={(e) => handleUnitChange(phase, e.target.value as TimeUnit)}
-                    className={`appearance-none bg-transparent text-xl font-medium opacity-50 hover:opacity-100 cursor-pointer pr-5 outline-none ${inputColor}`}
-                  >
-                    <option value="sec" className={selectOptionClass}>sec</option>
-                    <option value="min" className={selectOptionClass}>min</option>
-                    <option value="hr" className={selectOptionClass}>hr</option>
-                    <option value="day" className={selectOptionClass}>day</option>
-                  </select>
-                  <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none" size={14} />
-                </div>
+                <span className="text-5xl md:text-6xl font-mono font-bold opacity-50 mt-2">:</span>
+                <TimeInputGroup 
+                  value={durationSec} 
+                  onChange={(v) => handleTimeChange(phase, 'sec', v)}
+                  onIncrement={() => incrementTime(phase, 'sec', 1)}
+                  onDecrement={() => incrementTime(phase, 'sec', -1)}
+                  label="SEC"
+                  max={59}
+                />
               </div>
+
+              {/* Warning Input */}
               <div className="flex items-center gap-2 pt-2 border-t border-dashed border-opacity-20 border-inherit">
                  <BellRing size={14} className={isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : "opacity-30")} />
                  <span className={`text-xs font-bold uppercase opacity-50 ${isWarningError ? 'text-red-500 opacity-100' : ''}`}>Warn at:</span>
-                 <div className="flex-1 flex items-baseline gap-1">
-                   <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={warningDisplayValue === 0 && warningSecs === 0 ? '' : warningDisplayValue}
-                    placeholder="0"
-                    onChange={(e) => handleValueChange(phase, e.target.value, true)}
-                    className={`w-full bg-transparent text-right font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
-                   />
-                   <div className="relative">
-                      <select 
-                        value={currentWarningUnit}
-                        onChange={(e) => handleUnitChange(phase, e.target.value as TimeUnit, true)}
-                        className={`appearance-none bg-transparent text-xs font-bold uppercase cursor-pointer pr-3 outline-none ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : 'opacity-50')} ${inputColor}`}
-                      >
-                        <option value="sec" className={selectOptionClass}>sec</option>
-                        <option value="min" className={selectOptionClass}>min</option>
-                        <option value="hr" className={selectOptionClass}>hr</option>
-                      </select>
+                 <div className="flex-1 flex items-center justify-end gap-2">
+                   <div className="flex items-center gap-1">
+                      <button onClick={() => incrementTime(phase, 'min', 1, true)} className="opacity-30 hover:opacity-100"><ChevronUp size={10}/></button>
+                      <input
+                        type="number"
+                        min="0"
+                        value={warningMin}
+                        onChange={(e) => handleTimeChange(phase, 'min', e.target.value, true)}
+                        className={`w-6 bg-transparent text-right font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
+                        style={{ MozAppearance: 'textfield' }}
+                      />
+                      <button onClick={() => incrementTime(phase, 'min', -1, true)} className="opacity-30 hover:opacity-100"><ChevronDown size={10}/></button>
+                   </div>
+                   <span className="opacity-50 text-sm">:</span>
+                   <div className="flex items-center gap-1">
+                      <button onClick={() => incrementTime(phase, 'sec', 1, true)} className="opacity-30 hover:opacity-100"><ChevronUp size={10}/></button>
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={warningSec < 10 ? `0${warningSec}` : warningSec}
+                        onChange={(e) => handleTimeChange(phase, 'sec', e.target.value, true)}
+                        className={`w-6 bg-transparent text-left font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
+                        style={{ MozAppearance: 'textfield' }}
+                      />
+                      <button onClick={() => incrementTime(phase, 'sec', -1, true)} className="opacity-30 hover:opacity-100"><ChevronDown size={10}/></button>
                    </div>
                  </div>
               </div>

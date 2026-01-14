@@ -28,7 +28,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   const timer = useDefenseTimer(config);
 
   // Persist config
@@ -55,7 +55,7 @@ function App() {
       if (prev.theme === 'dark') nextTheme = 'light';
       else if (prev.theme === 'light') nextTheme = 'ml2025';
       else nextTheme = 'dark';
-      
+
       return { ...prev, theme: nextTheme };
     });
   };
@@ -114,116 +114,123 @@ function App() {
 
   return (
     <div className={`min-h-screen w-full flex flex-col theme-transition ${themeClasses} font-mono overflow-hidden`}>
-      
+
       {/* Header */}
       <header className="flex justify-between items-center p-6 md:p-8 z-10 animate-slide-up">
         <div className="flex items-center gap-4">
-          <div 
-            className="text-sm md:text-base font-bold tracking-widest uppercase opacity-70 cursor-pointer hover:opacity-100 transition-opacity" 
+          <div
+            className="text-sm md:text-base font-bold tracking-widest uppercase opacity-70 cursor-pointer hover:opacity-100 transition-opacity"
             onClick={() => { if (view === 'timer') handleReturnToSetupRequest(); }}
             title="Return to Setup"
           >
             Defense TimeKeeper
           </div>
         </div>
-        
+
         <div className="flex gap-4 items-center">
-           {/* Live View Button */}
-           <button 
-             onClick={openLiveView}
-             className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide opacity-50 hover:opacity-100 transition-all ${config.theme === 'dark' ? 'border-white/20 hover:bg-white/10' : config.theme === 'ml2025' ? 'border-ml-yellow/30 hover:bg-ml-yellow/10' : 'border-black/20 hover:bg-black/5'}`}
-             title="Open Projector View"
-           >
-             <ExternalLink size={14} />
-             <span className="hidden md:inline">Live View</span>
-           </button>
+          {/* Live View Button */}
+          <button
+            onClick={openLiveView}
+            className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide opacity-50 hover:opacity-100 transition-all ${config.theme === 'dark' ? 'border-white/20 hover:bg-white/10' : config.theme === 'ml2025' ? 'border-ml-yellow/30 hover:bg-ml-yellow/10' : 'border-black/20 hover:bg-black/5'}`}
+            title="Open Projector View"
+          >
+            <ExternalLink size={14} />
+            <span className="hidden md:inline">Live View</span>
+          </button>
 
-           <div className="h-6 w-px bg-current opacity-20"></div>
+          <div className="h-6 w-px bg-current opacity-20"></div>
 
-           {/* Theme Toggle */}
-           <button 
-             onClick={toggleTheme}
-             className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
-             title="Switch Theme"
-           >
-             <ThemeIcon size={24} />
-           </button>
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
+            title="Switch Theme"
+          >
+            <ThemeIcon size={24} />
+          </button>
 
-           {/* Home / New Session Button */}
-           {view === 'timer' && (
-             <button 
-               onClick={handleReturnToSetupRequest}
-               className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
-               title="Home / New Session"
-             >
-               <Home size={24} />
-             </button>
-           )}
+          {/* Home / New Session Button */}
+          {view === 'timer' && (
+            <button
+              onClick={handleReturnToSetupRequest}
+              className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
+              title="Home / New Session"
+            >
+              <Home size={24} />
+            </button>
+          )}
 
-           {/* Fullscreen Button */}
-           <button 
-             onClick={toggleFullscreen}
-             className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
-             title="Toggle Fullscreen"
-           >
-             {isFullscreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
-           </button>
+          {/* Fullscreen Button */}
+          <button
+            onClick={toggleFullscreen}
+            className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
+            title="Toggle Fullscreen"
+          >
+            {isFullscreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+          </button>
 
-           {/* Settings Button */}
-           {view === 'timer' && (
-             <button 
+          {/* Settings Button */}
+          {view === 'timer' && (
+            <button
               onClick={() => setIsSettingsOpen(true)}
               className={`opacity-50 hover:opacity-100 transition-opacity ${iconColor}`}
               title="Settings"
-             >
+            >
               <SettingsIcon size={24} />
-             </button>
-           )}
+            </button>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center relative px-4 w-full">
-        
+
         {view === 'setup' ? (
-          <SetupView 
-            config={config} 
-            onConfigChange={setConfig} 
-            onStart={handleStartSession} 
+          <SetupView
+            config={config}
+            onConfigChange={setConfig}
+            onStart={handleStartSession}
             presenterCount={timer.presenterCount}
             onPresenterCountChange={timer.setPresenterCount}
           />
         ) : (
           <>
             <PhaseIndicator currentPhase={timer.currentPhase} theme={config.theme} />
-            
-            <TimerDisplay 
+
+            <div className={`mt-2 mb-8 px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-widest opacity-70 animate-slide-up bg-opacity-10 backdrop-blur-sm ${config.theme === 'dark' ? 'border-white/20 bg-white/5' : config.theme === 'ml2025' ? 'border-ml-yellow/30 bg-ml-yellow/5' : 'border-black/20 bg-black/5'}`}>
+              Presenter {timer.presenterCount} {config.totalPresenters ? `/ ${config.totalPresenters}` : ''}
+            </div>
+
+            <TimerDisplay
               key={timer.currentPhase}
-              timeLeft={timer.timeLeft} 
+              timeLeft={timer.timeLeft}
               totalDuration={
-                timer.currentPhase === Phase.COMPLETE 
-                  ? 0 
+                timer.currentPhase === Phase.COMPLETE
+                  ? 0
                   : config.phases[timer.currentPhase as Exclude<Phase, Phase.COMPLETE>].durationSeconds
               }
               warningSeconds={
-                timer.currentPhase === Phase.COMPLETE 
-                ? 0 
-                : config.phases[timer.currentPhase as Exclude<Phase, Phase.COMPLETE>].warningSeconds
+                timer.currentPhase === Phase.COMPLETE
+                  ? 0
+                  : config.phases[timer.currentPhase as Exclude<Phase, Phase.COMPLETE>].warningSeconds
               }
-              phase={timer.currentPhase} 
+              phase={timer.currentPhase}
               theme={config.theme}
             />
 
-            <Controls 
+            <Controls
               isRunning={timer.isRunning}
               isPaused={timer.isPaused}
               phase={timer.currentPhase}
+              presenterCount={timer.presenterCount}
+              totalPresenters={config.totalPresenters}
               onStart={timer.start}
               onPause={timer.pause}
               onReset={handleReturnToSetupRequest}
               onRestartSession={() => timer.resetSession()}
               onRestartPhase={timer.restartPhase}
               onSkip={timer.skipPhase}
+              onNextPresenter={timer.nextPresenter}
               theme={config.theme}
             />
           </>
@@ -233,23 +240,32 @@ function App() {
 
       {/* Footer / Status */}
       <footer className="p-6 text-center text-xs opacity-30 uppercase tracking-widest animate-slide-up delay-200">
-         {view === 'setup' ? (
-           'Configure your session settings'
-         ) : (
-           <>
-             {timer.isRunning ? 'Timer Running' : timer.isPaused ? 'Timer Paused' : 'Ready'}
-             {' • '}
-             {config.autoAdvance ? 'Auto-Advance On' : 'Manual Advance'}
-             {' • '}
-             Presenter #{timer.presenterCount}
-           </>
-         )}
+        {view === 'setup' ? (
+          'Configure your session settings'
+        ) : (
+          <>
+            {timer.isRunning ? 'Timer Running' : timer.isPaused ? 'Timer Paused' : 'Ready'}
+            {' • '}
+            {config.autoAdvance ? 'Auto-Advance On' : 'Manual Advance'}
+            {' • '}
+            Presenter #{timer.presenterCount}
+            {config.totalPresenters ? (
+              <>
+                <span className="opacity-50">/{config.totalPresenters}</span>
+                {' • '}
+                <span className="hidden md:inline">{config.totalPresenters - timer.presenterCount} Left</span>
+                {' • '}
+                <span className="hidden md:inline">{timer.presenterCount - 1} Done</span>
+              </>
+            ) : null}
+          </>
+        )}
       </footer>
 
       {/* Settings Modal */}
-      <Settings 
-        config={config} 
-        isOpen={isSettingsOpen} 
+      <Settings
+        config={config}
+        isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onSave={setConfig}
       />
@@ -262,7 +278,7 @@ function App() {
               <div className="p-3 rounded-full bg-red-500/10 text-red-500">
                 <AlertTriangle size={32} />
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-bold uppercase tracking-wider mb-2">Start New Session?</h3>
                 <p className="text-sm opacity-70">
@@ -271,13 +287,13 @@ function App() {
               </div>
 
               <div className="flex gap-3 w-full mt-4">
-                <button 
+                <button
                   onClick={() => setIsExitConfirmOpen(false)}
                   className={`flex-1 py-3 rounded-lg font-bold text-sm uppercase tracking-wide border transition-colors ${config.theme === 'dark' ? 'border-white/20 hover:bg-white/10' : config.theme === 'ml2025' ? 'border-ml-yellow/30 hover:bg-ml-yellow/10' : 'border-black/20 hover:bg-black/10'}`}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={confirmReturnToSetup}
                   className="flex-1 py-3 rounded-lg font-bold text-sm uppercase tracking-wide bg-red-600 text-white hover:bg-red-700 transition-colors shadow-lg"
                 >
@@ -288,7 +304,7 @@ function App() {
           </div>
         </div>
       )}
-      
+
     </div>
   );
 }

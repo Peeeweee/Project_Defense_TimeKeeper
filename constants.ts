@@ -16,7 +16,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   theme: 'dark', // Default to black mode
   soundEnabled: true,
   tickMode: TickMode.LAST_TEN, // Default to last 10 seconds for utility
-  autoAdvance: true
+  autoAdvance: true,
+  totalPresenters: 10
 };
 
 export const DEFAULT_PRESETS: Preset[] = [

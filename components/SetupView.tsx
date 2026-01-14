@@ -22,7 +22,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
       return DEFAULT_PRESETS;
     }
   });
-  
+
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const [isNamingPreset, setIsNamingPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
@@ -39,7 +39,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
     const pKey = phase as Exclude<Phase, Phase.COMPLETE>;
     const currentSeconds = isWarning ? config.phases[pKey].warningSeconds : config.phases[pKey].durationSeconds;
-    
+
     const currentMin = Math.floor(currentSeconds / 60);
     const currentSec = currentSeconds % 60;
 
@@ -69,11 +69,11 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
     const currentSeconds = isWarning ? config.phases[pKey].warningSeconds : config.phases[pKey].durationSeconds;
     const currentMin = Math.floor(currentSeconds / 60);
     const currentSec = currentSeconds % 60;
-    
+
     let newVal = type === 'min' ? currentMin + amount : currentSec + amount;
     if (newVal < 0) newVal = type === 'sec' ? 59 : 0;
     if (type === 'sec' && newVal >= 60) newVal = 0;
-    
+
     handleTimeChange(phase, type, newVal.toString(), isWarning);
   };
 
@@ -124,16 +124,16 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   const handleStartSession = () => {
     const phases = [Phase.PRESENTATION, Phase.Q_AND_A];
     for (const phase of phases) {
-        const key = phase as Exclude<Phase, Phase.COMPLETE>;
-        const pConfig = config.phases[key];
-        if (pConfig.durationSeconds <= 0) {
-             setValidationError("Please set a duration for all phases before starting.");
-             return;
-        }
-        if (pConfig.warningSeconds > 0 && pConfig.warningSeconds >= pConfig.durationSeconds) {
-             setValidationError(`Warning time for ${pConfig.label} must be shorter than the phase duration.`);
-             return;
-        }
+      const key = phase as Exclude<Phase, Phase.COMPLETE>;
+      const pConfig = config.phases[key];
+      if (pConfig.durationSeconds <= 0) {
+        setValidationError("Please set a duration for all phases before starting.");
+        return;
+      }
+      if (pConfig.warningSeconds > 0 && pConfig.warningSeconds >= pConfig.durationSeconds) {
+        setValidationError(`Warning time for ${pConfig.label} must be shorter than the phase duration.`);
+        return;
+      }
     }
     setValidationError(null);
     onStart();
@@ -148,7 +148,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
   let startBtnClass = '';
   let optionHoverBg = '';
   let spinBtnHover = '';
-  
+
   if (config.theme === 'dark') {
     themeClasses = 'text-white border-white/20';
     warningTextClass = 'text-amber-400';
@@ -188,18 +188,18 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
   const selectedPreset = presets.find(p => p.id === selectedPresetId);
 
-  const TimeInputGroup = ({ 
-    value, 
-    onChange, 
-    onIncrement, 
-    onDecrement, 
-    label, 
-    max = 99 
-  }: { 
-    value: number, 
-    onChange: (val: string) => void, 
-    onIncrement: () => void, 
-    onDecrement: () => void, 
+  const TimeInputGroup = ({
+    value,
+    onChange,
+    onIncrement,
+    onDecrement,
+    label,
+    max = 99
+  }: {
+    value: number,
+    onChange: (val: string) => void,
+    onIncrement: () => void,
+    onDecrement: () => void,
     label: string,
     max?: number
   }) => (
@@ -232,7 +232,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-5xl mx-auto px-6 py-12">
-      
+
       <header className="text-center mb-8 space-y-2 animate-slide-up">
         <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">DEFENSE TIMEKEEPER</h1>
         <p className="text-sm md:text-base font-medium opacity-50 uppercase tracking-[0.3em]">Session Configuration</p>
@@ -240,87 +240,118 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
       {/* Presets Toolbar */}
       <div className={`w-full flex flex-col md:flex-row items-center justify-between gap-4 p-4 mb-8 rounded-lg border bg-opacity-5 animate-slide-up delay-100 ${themeClasses}`}>
-         <div className="flex items-center gap-3 w-full md:w-auto">
-            <FolderOpen size={18} className="opacity-50" />
-            <span className="text-sm font-bold uppercase tracking-wider opacity-70 whitespace-nowrap">Load Preset:</span>
-            <div className="relative flex-1 md:w-64">
-              <select 
-                value={selectedPresetId}
-                onChange={(e) => handleLoadPreset(e.target.value)}
-                className={`w-full appearance-none bg-transparent font-bold py-1 pr-8 outline-none border-b border-transparent hover:border-current transition-colors ${!selectedPresetId ? 'opacity-50 italic' : ''}`}
-              >
-                <option value="" disabled className={selectOptionClass}>-- Select / Custom --</option>
-                {presets.map(p => (
-                  <option key={p.id} value={p.id} className={selectOptionClass}>
-                    {p.name} {p.isDefault ? '(Default)' : ''}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none" size={14} />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <FolderOpen size={18} className="opacity-50" />
+          <span className="text-sm font-bold uppercase tracking-wider opacity-70 whitespace-nowrap">Load Preset:</span>
+          <div className="relative flex-1 md:w-64">
+            <select
+              value={selectedPresetId}
+              onChange={(e) => handleLoadPreset(e.target.value)}
+              className={`w-full appearance-none bg-transparent font-bold py-1 pr-8 outline-none border-b border-transparent hover:border-current transition-colors ${!selectedPresetId ? 'opacity-50 italic' : ''}`}
+            >
+              <option value="" disabled className={selectOptionClass}>-- Select / Custom --</option>
+              {presets.map(p => (
+                <option key={p.id} value={p.id} className={selectOptionClass}>
+                  {p.name} {p.isDefault ? '(Default)' : ''}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none" size={14} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+          {selectedPreset && !selectedPreset.isDefault && (
+            <button
+              onClick={handleDeletePreset}
+              title="Delete Preset"
+              className="p-2 hover:text-red-500 transition-colors opacity-50 hover:opacity-100"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
+          <div className="h-6 w-px bg-current opacity-10 mx-2 hidden md:block"></div>
+          {isNamingPreset ? (
+            <div className="flex items-center gap-2 animate-in slide-in-from-right duration-200">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Preset Name..."
+                value={newPresetName}
+                onChange={(e) => setNewPresetName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSavePreset()}
+                className={`bg-transparent border-b border-current w-32 md:w-40 py-1 text-sm outline-none ${inputColor}`}
+              />
+              <button onClick={handleSavePreset} className="p-1 hover:text-green-500 transition-colors"><Check size={18} /></button>
+              <button onClick={() => setIsNamingPreset(false)} className="p-1 hover:text-red-500 transition-colors"><X size={18} /></button>
             </div>
-         </div>
-         <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-            {selectedPreset && !selectedPreset.isDefault && (
-              <button 
-                onClick={handleDeletePreset}
-                title="Delete Preset"
-                className="p-2 hover:text-red-500 transition-colors opacity-50 hover:opacity-100"
-              >
-                <Trash2 size={18} />
-              </button>
-            )}
-            <div className="h-6 w-px bg-current opacity-10 mx-2 hidden md:block"></div>
-            {isNamingPreset ? (
-              <div className="flex items-center gap-2 animate-in slide-in-from-right duration-200">
-                <input 
-                  autoFocus
-                  type="text" 
-                  placeholder="Preset Name..."
-                  value={newPresetName}
-                  onChange={(e) => setNewPresetName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSavePreset()}
-                  className={`bg-transparent border-b border-current w-32 md:w-40 py-1 text-sm outline-none ${inputColor}`}
-                />
-                <button onClick={handleSavePreset} className="p-1 hover:text-green-500 transition-colors"><Check size={18}/></button>
-                <button onClick={() => setIsNamingPreset(false)} className="p-1 hover:text-red-500 transition-colors"><X size={18}/></button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsNamingPreset(true)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wide ${themeClasses} ${optionHoverBg} hover:border-current transition-all backdrop-blur-sm`}
-              >
-                <Save size={14} />
-                <span>Save Config</span>
-              </button>
-            )}
-         </div>
+          ) : (
+            <button
+              onClick={() => setIsNamingPreset(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wide ${themeClasses} ${optionHoverBg} hover:border-current transition-all backdrop-blur-sm`}
+            >
+              <Save size={14} />
+              <span>Save Config</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Presenter Count Input */}
-      <div className={`flex items-center gap-4 mb-8 p-4 rounded-lg border bg-opacity-5 animate-slide-up delay-150 ${themeClasses}`}>
-        <Users size={20} className="opacity-70" />
-        <span className="text-sm font-bold uppercase tracking-wider opacity-70">Current Presenter:</span>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => onPresenterCountChange(Math.max(1, presenterCount - 1))}
-            className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
-          >
-            <ChevronDown size={20} />
-          </button>
-          <input
-            type="number"
-            min="1"
-            value={presenterCount}
-            onChange={(e) => onPresenterCountChange(Math.max(1, parseInt(e.target.value) || 1))}
-            className={`text-2xl font-mono font-bold w-16 text-center bg-transparent outline-none p-0 leading-none appearance-none ${inputColor}`}
-            style={{ MozAppearance: 'textfield' }}
-          />
-          <button 
-            onClick={() => onPresenterCountChange(presenterCount + 1)}
-            className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
-          >
-            <ChevronUp size={20} />
-          </button>
+      <div className={`flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-8 p-4 rounded-lg border bg-opacity-5 animate-slide-up delay-150 ${themeClasses}`}>
+        {/* Current Presenter (Start At) */}
+        <div className="flex items-center gap-3">
+          <Users size={20} className="opacity-70" />
+          <span className="text-sm font-bold uppercase tracking-wider opacity-70">Start At Presenter:</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onPresenterCountChange(Math.max(1, presenterCount - 1))}
+              className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
+            >
+              <ChevronDown size={20} />
+            </button>
+            <input
+              type="number"
+              min="1"
+              value={presenterCount}
+              onChange={(e) => onPresenterCountChange(Math.max(1, parseInt(e.target.value) || 1))}
+              className={`text-2xl font-mono font-bold w-16 text-center bg-transparent outline-none p-0 leading-none appearance-none ${inputColor}`}
+              style={{ MozAppearance: 'textfield' }}
+            />
+            <button
+              onClick={() => onPresenterCountChange(presenterCount + 1)}
+              className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
+            >
+              <ChevronUp size={20} />
+            </button>
+          </div>
+        </div>
+
+        <div className="hidden md:block h-8 w-px bg-current opacity-20"></div>
+
+        {/* Total Presenters Limit */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold uppercase tracking-wider opacity-70">Total Presenters:</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onConfigChange({ ...config, totalPresenters: Math.max(1, (config.totalPresenters || 10) - 1) })}
+              className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
+            >
+              <ChevronDown size={20} />
+            </button>
+            <input
+              type="number"
+              min="1"
+              value={config.totalPresenters || 10}
+              onChange={(e) => onConfigChange({ ...config, totalPresenters: Math.max(1, parseInt(e.target.value) || 1) })}
+              className={`text-2xl font-mono font-bold w-16 text-center bg-transparent outline-none p-0 leading-none appearance-none ${inputColor}`}
+              style={{ MozAppearance: 'textfield' }}
+            />
+            <button
+              onClick={() => onConfigChange({ ...config, totalPresenters: (config.totalPresenters || 10) + 1 })}
+              className={`p-1 rounded transition-colors opacity-50 hover:opacity-100 ${spinBtnHover}`}
+            >
+              <ChevronUp size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -334,13 +365,13 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
           const durationMin = Math.floor(seconds / 60);
           const durationSec = seconds % 60;
-          
+
           const warningMin = Math.floor(warningSecs / 60);
           const warningSec = warningSecs % 60;
 
           return (
-            <div 
-              key={phase} 
+            <div
+              key={phase}
               className={`flex flex-col p-6 rounded-xl border ${isWarningError ? 'border-red-500' : themeClasses} relative group transition-all hover:-translate-y-1 hover:shadow-lg hover:border-opacity-50 animate-slide-up`}
               style={{ animationDelay: `${(index + 2) * 100}ms` }}
             >
@@ -348,19 +379,19 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
                 <Clock size={16} />
                 <span className={`text-xs font-bold uppercase tracking-wider ${isWarningError ? 'text-red-500' : ''}`}>{config.phases[pKey].label}</span>
               </div>
-              
+
               {/* Duration Input */}
               <div className="flex items-start justify-center gap-4 mb-6">
-                <TimeInputGroup 
-                  value={durationMin} 
+                <TimeInputGroup
+                  value={durationMin}
                   onChange={(v) => handleTimeChange(phase, 'min', v)}
                   onIncrement={() => incrementTime(phase, 'min', 1)}
                   onDecrement={() => incrementTime(phase, 'min', -1)}
                   label="MIN"
                 />
                 <span className="text-5xl md:text-6xl font-mono font-bold opacity-50 mt-2">:</span>
-                <TimeInputGroup 
-                  value={durationSec} 
+                <TimeInputGroup
+                  value={durationSec}
                   onChange={(v) => handleTimeChange(phase, 'sec', v)}
                   onIncrement={() => incrementTime(phase, 'sec', 1)}
                   onDecrement={() => incrementTime(phase, 'sec', -1)}
@@ -371,36 +402,36 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
               {/* Warning Input */}
               <div className="flex items-center gap-2 pt-2 border-t border-dashed border-opacity-20 border-inherit">
-                 <BellRing size={14} className={isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : "opacity-30")} />
-                 <span className={`text-xs font-bold uppercase opacity-50 ${isWarningError ? 'text-red-500 opacity-100' : ''}`}>Warn at:</span>
-                 <div className="flex-1 flex items-center justify-end gap-2">
-                   <div className="flex items-center gap-1">
-                      <button onClick={() => incrementTime(phase, 'min', 1, true)} className="opacity-30 hover:opacity-100"><ChevronUp size={10}/></button>
-                      <input
-                        type="number"
-                        min="0"
-                        value={warningMin}
-                        onChange={(e) => handleTimeChange(phase, 'min', e.target.value, true)}
-                        className={`w-6 bg-transparent text-right font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
-                        style={{ MozAppearance: 'textfield' }}
-                      />
-                      <button onClick={() => incrementTime(phase, 'min', -1, true)} className="opacity-30 hover:opacity-100"><ChevronDown size={10}/></button>
-                   </div>
-                   <span className="opacity-50 text-sm">:</span>
-                   <div className="flex items-center gap-1">
-                      <button onClick={() => incrementTime(phase, 'sec', 1, true)} className="opacity-30 hover:opacity-100"><ChevronUp size={10}/></button>
-                      <input
-                        type="number"
-                        min="0"
-                        max="59"
-                        value={warningSec < 10 ? `0${warningSec}` : warningSec}
-                        onChange={(e) => handleTimeChange(phase, 'sec', e.target.value, true)}
-                        className={`w-6 bg-transparent text-left font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
-                        style={{ MozAppearance: 'textfield' }}
-                      />
-                      <button onClick={() => incrementTime(phase, 'sec', -1, true)} className="opacity-30 hover:opacity-100"><ChevronDown size={10}/></button>
-                   </div>
-                 </div>
+                <BellRing size={14} className={isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : "opacity-30")} />
+                <span className={`text-xs font-bold uppercase opacity-50 ${isWarningError ? 'text-red-500 opacity-100' : ''}`}>Warn at:</span>
+                <div className="flex-1 flex items-center justify-end gap-2">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => incrementTime(phase, 'min', 1, true)} className="opacity-30 hover:opacity-100"><ChevronUp size={10} /></button>
+                    <input
+                      type="number"
+                      min="0"
+                      value={warningMin}
+                      onChange={(e) => handleTimeChange(phase, 'min', e.target.value, true)}
+                      className={`w-6 bg-transparent text-right font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
+                      style={{ MozAppearance: 'textfield' }}
+                    />
+                    <button onClick={() => incrementTime(phase, 'min', -1, true)} className="opacity-30 hover:opacity-100"><ChevronDown size={10} /></button>
+                  </div>
+                  <span className="opacity-50 text-sm">:</span>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => incrementTime(phase, 'sec', 1, true)} className="opacity-30 hover:opacity-100"><ChevronUp size={10} /></button>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={warningSec < 10 ? `0${warningSec}` : warningSec}
+                      onChange={(e) => handleTimeChange(phase, 'sec', e.target.value, true)}
+                      className={`w-6 bg-transparent text-left font-mono font-bold outline-none border-b border-transparent hover:border-current focus:border-current transition-colors text-sm ${isWarningError ? 'text-red-500' : (warningSecs > 0 ? warningTextClass : inputColor)}`}
+                      style={{ MozAppearance: 'textfield' }}
+                    />
+                    <button onClick={() => incrementTime(phase, 'sec', -1, true)} className="opacity-30 hover:opacity-100"><ChevronDown size={10} /></button>
+                  </div>
+                </div>
               </div>
             </div>
           );
@@ -409,7 +440,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
 
       {/* Options */}
       <div className="flex flex-wrap items-center justify-center gap-6 mb-16 animate-slide-up delay-300">
-        <button 
+        <button
           onClick={toggleSound}
           className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} ${optionHoverBg} hover:border-current transition-all backdrop-blur-sm`}
         >
@@ -419,7 +450,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
           </span>
         </button>
 
-        <button 
+        <button
           onClick={cycleTickMode}
           className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} ${optionHoverBg} hover:border-current transition-all backdrop-blur-sm`}
         >
@@ -429,7 +460,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
           </span>
         </button>
 
-        <button 
+        <button
           onClick={toggleAutoAdvance}
           className={`flex items-center gap-3 px-6 py-3 rounded-full border ${themeClasses} ${optionHoverBg} hover:border-current transition-all backdrop-blur-sm`}
         >
@@ -449,7 +480,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ config, onConfigChange, on
       )}
 
       {/* Start Button */}
-      <button 
+      <button
         onClick={handleStartSession}
         className={`
           group relative flex items-center justify-center gap-4 px-12 py-6 rounded-full 

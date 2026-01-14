@@ -22,6 +22,7 @@ export interface AppConfig {
   soundEnabled: boolean;
   tickMode: TickMode;
   autoAdvance: boolean;
+  totalPresenters?: number;
 }
 
 export interface Preset {

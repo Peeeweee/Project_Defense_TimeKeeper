@@ -22,11 +22,11 @@ export const useDefenseTimer = (config: AppConfig) => {
   // When config changes (e.g. settings update), if we are in that phase and not running, update time
   useEffect(() => {
     if (!timerState.isRunning && !timerState.isPaused && timerState.currentPhase !== Phase.COMPLETE) {
-       const phaseKey = timerState.currentPhase as Exclude<Phase, Phase.COMPLETE>;
-       setTimerState(prev => ({
-         ...prev,
-         timeLeft: config.phases[phaseKey].durationSeconds
-       }));
+      const phaseKey = timerState.currentPhase as Exclude<Phase, Phase.COMPLETE>;
+      setTimerState(prev => ({
+        ...prev,
+        timeLeft: config.phases[phaseKey].durationSeconds
+      }));
     }
   }, [config.phases, timerState.currentPhase, timerState.isRunning, timerState.isPaused]);
 
@@ -35,7 +35,7 @@ export const useDefenseTimer = (config: AppConfig) => {
     const nextPhase = PHASE_ORDER[currentIndex + 1];
 
     if (nextPhase && nextPhase !== Phase.COMPLETE) {
-      if (config.soundEnabled) playAlertSound();
+      // if (config.soundEnabled) playAlertSound(); // User requested to stop sound on transition
       setTimerState(prev => ({
         ...prev,
         currentPhase: nextPhase,
@@ -44,15 +44,32 @@ export const useDefenseTimer = (config: AppConfig) => {
         isPaused: !config.autoAdvance,
       }));
     } else {
-      // Complete
-      if (config.soundEnabled) playAlertSound();
-      setTimerState(prev => ({
-        ...prev,
-        currentPhase: Phase.COMPLETE,
-        timeLeft: 0,
-        isRunning: false,
-        isPaused: false
-      }));
+      // End of cycle (e.g. QnA finished)
+      // Check if we should loop to next presenter
+      const total = config.totalPresenters || 1;
+
+      if (timerState.presenterCount < total) {
+        // Next Presenter
+        // if (config.soundEnabled) playAlertSound(); // User requested to stop sound on loop
+        setTimerState(prev => ({
+          ...prev,
+          currentPhase: Phase.PRESENTATION,
+          timeLeft: config.phases[Phase.PRESENTATION].durationSeconds,
+          isRunning: config.autoAdvance,
+          isPaused: !config.autoAdvance,
+          presenterCount: prev.presenterCount + 1
+        }));
+      } else {
+        // All Complete
+        if (config.soundEnabled) playAlertSound();
+        setTimerState(prev => ({
+          ...prev,
+          currentPhase: Phase.COMPLETE,
+          timeLeft: 0,
+          isRunning: false,
+          isPaused: false
+        }));
+      }
     }
   }, [timerState.currentPhase, config]);
 
@@ -62,9 +79,9 @@ export const useDefenseTimer = (config: AppConfig) => {
         // Phase finished in this tick
         return prev; // Handled by effect below
       }
-      
+
       const nextTime = prev.timeLeft - 1;
-      
+
       const currentPhaseConfig = config.phases[prev.currentPhase as Exclude<Phase, Phase.COMPLETE>];
 
       if (config.soundEnabled) {
@@ -74,12 +91,13 @@ export const useDefenseTimer = (config: AppConfig) => {
         }
 
         // Ticking Sound
-        const shouldTick = 
+        const shouldTick =
           config.tickMode === TickMode.EVERY_SECOND ||
           (config.tickMode === TickMode.LAST_TEN && nextTime <= 10 && nextTime >= 0);
 
         if (shouldTick) {
-          playTickSound();
+          // User requested to remove the "Last second 3 buzz"
+          // playTickSound(); 
         }
       }
 
@@ -102,9 +120,9 @@ export const useDefenseTimer = (config: AppConfig) => {
   }, [timerState.isRunning, timerState.timeLeft, tick, advancePhase]);
 
   const start = () => setTimerState(prev => ({ ...prev, isRunning: true, isPaused: false }));
-  
+
   const pause = () => setTimerState(prev => ({ ...prev, isRunning: false, isPaused: true }));
-  
+
   const resetSession = () => {
     setTimerState(prev => ({
       ...prev,
@@ -134,6 +152,18 @@ export const useDefenseTimer = (config: AppConfig) => {
     setTimerState(prev => ({ ...prev, presenterCount: count }));
   };
 
+  const nextPresenter = () => {
+    // if (config.soundEnabled) playAlertSound();
+    setTimerState(prev => ({
+      ...prev,
+      currentPhase: Phase.PRESENTATION,
+      timeLeft: config.phases[Phase.PRESENTATION].durationSeconds,
+      isRunning: false,
+      isPaused: false,
+      presenterCount: prev.presenterCount + 1
+    }));
+  };
+
   return {
     ...timerState,
     start,
@@ -141,6 +171,7 @@ export const useDefenseTimer = (config: AppConfig) => {
     resetSession,
     restartPhase,
     skipPhase,
-    setPresenterCount
+    setPresenterCount,
+    nextPresenter
   };
 };

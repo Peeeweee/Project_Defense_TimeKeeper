@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Black background circle -->
+  <circle cx="50" cy="50" r="48" fill="black" />
+  
+  <!-- White Clock Ring (optional, maybe just hands is cleaner? Let's add a thin ring inside) -->
+  <circle cx="50" cy="50" r="40" stroke="white" stroke-width="4" />
+  
+  <!-- Clock Hands (White) -->
+  <!-- Hour Hand (pointing roughly at 10) -->
+  <line x1="50" y1="50" x2="30" y2="35" stroke="white" stroke-width="6" stroke-linecap="round" />
+  
+  <!-- Minute Hand (pointing at 2) -->
+  <line x1="50" y1="50" x2="70" y2="30" stroke="white" stroke-width="6" stroke-linecap="round" />
+  
+  <!-- Center Dot -->
+  <circle cx="50" cy="50" r="4" fill="white" />
+</svg>
